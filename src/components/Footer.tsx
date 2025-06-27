@@ -8,7 +8,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="font-headline text-xl text-primary mb-4">Pickle E-Commerce</h3>
-            <p className="text-sm text-muted-foreground">Authentic Indian flavors, delivered to you.</p>
+            <p className="text-sm text-muted-foreground">Authentic Indian regional flavors, delivered to you.</p>
           </div>
           <div>
             <h4 className="font-headline text-lg mb-4">Shop</h4>
