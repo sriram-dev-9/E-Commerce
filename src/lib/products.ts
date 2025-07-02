@@ -7,90 +7,64 @@ export type Review = {
   date: string;
 };
 
+export type ProductVariant = {
+  qty: string;
+  price: number;
+};
+
 export type Product = {
   id: string;
   name: string;
   description: string;
-  price: number;
   image: string;
   category: 'pickles' | 'spices' | 'essentials';
+  subcategory: 'veg' | 'nonveg' | 'podulu';
+  variants: ProductVariant[];
   reviews: Review[];
   dataAiHint: string;
 };
 
 const products: Product[] = [
+  // Vegetarian Pickles
   {
-    id: 'mango-pickle',
-    name: 'Spicy Mango Pickle',
-    description: 'A classic Indian pickle made with raw mangoes, aromatic spices, and mustard oil. A tangy and spicy delight that complements any meal.',
-    price: 249,
+    id: 'avakaya',
+    name: 'Avakaya (Konaseema Mango Pickle)',
+    description: 'Traditional mango pickle from Konaseema, Andhra Pradesh.',
     image: 'https://placehold.co/600x600.png',
     dataAiHint: 'mango pickle',
     category: 'pickles',
-    reviews: [
-      { id: 1, author: 'Priya S.', rating: 5, title: 'Just like homemade!', comment: 'This tastes exactly like the pickle my grandmother used to make. Perfectly spicy and tangy.', date: '2023-08-15' },
-      { id: 2, author: 'Rajesh K.', rating: 4, title: 'Very flavorful', comment: 'A bit too spicy for my wife, but I love it. Great with parathas.', date: '2023-08-10' },
+    subcategory: 'veg',
+    variants: [
+      { qty: '250g', price: 150 },
+      { qty: '500g', price: 300 },
+      { qty: '1kg', price: 600 },
     ],
-  },
-  {
-    id: 'lime-pickle',
-    name: 'Tangy Lime Pickle',
-    description: 'A zesty and pungent pickle made from lemons, mixed with a blend of traditional spices. Adds a burst of flavor to your dishes.',
-    price: 229,
-    image: 'https://placehold.co/600x600.png',
-    dataAiHint: 'lime pickle',
-    category: 'pickles',
-    reviews: [
-        { id: 1, author: 'Anjali M.', rating: 5, title: 'So delicious!', comment: 'The perfect balance of sour and spice. My family finishes a jar in a week!', date: '2023-09-01' },
-    ],
-  },
-  {
-    id: 'garam-masala',
-    name: 'Artisanal Garam Masala',
-    description: 'A premium blend of hand-roasted spices, ground in small batches to preserve aroma and flavor. The heart of many Indian dishes.',
-    price: 349,
-    image: 'https://placehold.co/600x600.png',
-    dataAiHint: 'garam masala',
-    category: 'spices',
-    reviews: [
-        { id: 1, author: 'Vikram C.', rating: 5, title: 'Incredibly aromatic', comment: 'You can tell this is high quality. It has elevated my cooking completely.', date: '2023-09-05' },
-        { id: 2, author: 'Sunita P.', rating: 5, title: 'The best I have ever used', comment: 'This garam masala is so much better than the store-bought ones. Rich and complex flavor.', date: '2023-08-20' },
-    ],
-  },
-  {
-    id: 'turmeric-powder',
-    name: 'Organic Turmeric Powder',
-    description: 'Sourced from organic farms, this vibrant turmeric powder is known for its earthy flavor and brilliant color. A staple in every Indian kitchen.',
-    price: 199,
-    image: 'https://placehold.co/600x600.png',
-    dataAiHint: 'turmeric powder',
-    category: 'spices',
     reviews: [],
   },
-  {
-    id: 'basmati-rice',
-    name: 'Aged Basmati Rice',
-    description: 'Premium, long-grain basmati rice, aged for two years to enhance its fragrant aroma and fluffy texture. Perfect for biryanis and pulao.',
-    price: 499,
-    image: 'https://placehold.co/600x600.png',
-    dataAiHint: 'basmati rice',
-    category: 'essentials',
-    reviews: [
-        { id: 1, author: 'Amit G.', rating: 5, title: 'Restaurant quality rice', comment: 'This is the best basmati rice I have found outside of India. So fragrant!', date: '2023-07-12' },
-    ],
-  },
-  {
-    id: 'ghee',
-    name: 'Pure Desi Ghee',
-    description: 'Made from pure cow\'s milk using traditional methods, our ghee has a rich, nutty aroma and is perfect for cooking and religious ceremonies.',
-    price: 599,
-    image: 'https://placehold.co/600x600.png',
-    dataAiHint: 'ghee cooking',
-    category: 'essentials',
-    reviews: [
-        { id: 1, author: 'Meera N.', rating: 5, title: 'The real deal', comment: 'This ghee is so pure and tastes amazing. It reminds me of my village.', date: '2023-08-28' },
-    ],
-  },
+  { id: 'maagaya', name: 'Maagaya Pickle (Dry Mango)', description: 'Dry mango pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'dry mango pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'tomato', name: 'Tomato Pickle', description: 'Spicy and tangy tomato pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'tomato pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'lemon', name: 'Lemon Pickle', description: 'Zesty lemon pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'lemon pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'gongura', name: 'Gongura Pickle', description: 'Andhra-style gongura pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'gongura pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'thokku', name: 'Thokku Pachadi (Mango Pickle)', description: 'Mango thokku pachadi.', image: 'https://placehold.co/600x600.png', dataAiHint: 'mango thokku', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'mixed-veg', name: 'Mixed Vegetable Pickle', description: 'Mixed vegetable pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'mixed vegetable pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'cauliflower', name: 'Cauliflower Pickle', description: 'Cauliflower pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'cauliflower pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'drumstick', name: 'Drumstick Pickle', description: 'Drumstick pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'drumstick pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'amla', name: 'Amla Pickle (Usirikaya Pickle)', description: 'Amla (gooseberry) pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'amla pickle', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'panasapottu', name: 'Panasapottu Avakaya', description: 'Jackfruit seed mango pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'panasapottu avakaya', category: 'pickles', subcategory: 'veg', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+
+  // Non-Veg Pickles
+  { id: 'chicken-aavakaya-bone', name: 'Chicken aavakaya (bone)', description: 'Chicken aavakaya pickle with bone.', image: 'https://placehold.co/600x600.png', dataAiHint: 'chicken aavakaya bone', category: 'pickles', subcategory: 'nonveg', variants: [{ qty: '500g', price: 600 }, { qty: '1kg', price: 1200 }], reviews: [] },
+  { id: 'chicken-aavakaya-boneless', name: 'Chicken aavakaya (bone less)', description: 'Boneless chicken aavakaya pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'chicken aavakaya boneless', category: 'pickles', subcategory: 'nonveg', variants: [{ qty: '500g', price: 700 }, { qty: '1kg', price: 1400 }], reviews: [] },
+  { id: 'gongura-chicken-boneless', name: 'Gongura chicken (boneless)', description: 'Boneless gongura chicken pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'gongura chicken boneless', category: 'pickles', subcategory: 'nonveg', variants: [{ qty: '500g', price: 700 }, { qty: '1kg', price: 1400 }], reviews: [] },
+  { id: 'prawn', name: 'Prawn', description: 'Prawn pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'prawn pickle', category: 'pickles', subcategory: 'nonveg', variants: [{ qty: '500g', price: 900 }, { qty: '1kg', price: 1800 }], reviews: [] },
+  { id: 'gongura-prawn', name: 'Gongura Prawn', description: 'Gongura prawn pickle.', image: 'https://placehold.co/600x600.png', dataAiHint: 'gongura prawn', category: 'pickles', subcategory: 'nonveg', variants: [{ qty: '500g', price: 900 }, { qty: '1kg', price: 1800 }], reviews: [] },
+
+  // Podulu (Spices/Powders)
+  { id: 'idly-karam', name: 'Idly Karam podi', description: 'Spicy idly karam podi.', image: 'https://placehold.co/600x600.png', dataAiHint: 'idly karam podi', category: 'spices', subcategory: 'podulu', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'dhaniyala', name: 'Dhaniyala podi', description: 'Coriander (dhaniya) podi.', image: 'https://placehold.co/600x600.png', dataAiHint: 'dhaniyala podi', category: 'spices', subcategory: 'podulu', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'kandhi', name: 'Kandhi Podi', description: 'Protein-rich kandhi podi.', image: 'https://placehold.co/600x600.png', dataAiHint: 'kandhi podi', category: 'spices', subcategory: 'podulu', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'velluli-karam', name: 'Velluli karam podi', description: 'Garlic (velluli) karam podi.', image: 'https://placehold.co/600x600.png', dataAiHint: 'velluli karam podi', category: 'spices', subcategory: 'podulu', variants: [{ qty: '250g', price: 150 }], reviews: [] },
+  { id: 'karivepaku', name: 'Karivepaku podi', description: 'Curry leaf (karivepaku) podi.', image: 'https://placehold.co/600x600.png', dataAiHint: 'karivepaku podi', category: 'spices', subcategory: 'podulu', variants: [{ qty: '250g', price: 150 }], reviews: [] },
 ];
 
 export function getProducts(category?: string): Product[] {

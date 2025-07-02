@@ -7,23 +7,40 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { Star, StarHalf, Minus, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function AddToCartSection({ product }: { product: Product }) {
   const { addToCart } = useCart();
+  const [variantIdx, setVariantIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
+  const variant = product.variants[variantIdx];
+
   return (
-    <div className="flex items-center gap-4 mt-6">
-      <div className="flex items-center border rounded-md">
-        <Button variant="ghost" size="icon" onClick={() => setQuantity(q => Math.max(1, q-1))}>
+    <div className="flex flex-col gap-4 mt-6">
+      <div className="flex items-center gap-4">
+        <Select value={variantIdx.toString()} onValueChange={val => setVariantIdx(Number(val))}>
+          <SelectTrigger className="w-32">
+            <SelectValue>{variant.qty}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {product.variants.map((v, idx) => (
+              <SelectItem key={v.qty} value={idx.toString()}>{v.qty}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <div className="flex items-center border rounded-md">
+          <Button variant="ghost" size="icon" onClick={() => setQuantity(q => Math.max(1, q-1))}>
             <Minus className="h-4 w-4" />
-        </Button>
-        <span className="w-10 text-center">{quantity}</span>
-        <Button variant="ghost" size="icon" onClick={() => setQuantity(q => q+1)}>
+          </Button>
+          <span className="w-10 text-center">{quantity}</span>
+          <Button variant="ghost" size="icon" onClick={() => setQuantity(q => q+1)}>
             <Plus className="h-4 w-4" />
-        </Button>
+          </Button>
+        </div>
+        <span className="font-bold text-lg text-primary">₹{variant.price.toFixed(2)}</span>
       </div>
-      <Button onClick={() => addToCart(product, quantity)} size="lg" className="flex-grow">
+      <Button onClick={() => addToCart({ ...product, variants: [variant] }, quantity)} size="lg" className="flex-grow">
         Add to Cart
       </Button>
     </div>
@@ -94,7 +111,6 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         </div>
         <div>
           <h1 className="font-headline text-4xl lg:text-5xl mb-4">{product.name}</h1>
-          <p className="text-2xl font-bold text-primary mb-6">₹{product.price.toFixed(2)}</p>
           <p className="text-lg text-muted-foreground mb-6">{product.description}</p>
           
           <AddToCartSection product={product} />
