@@ -45,11 +45,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const addToCart = useCallback((product: Product, quantity = 1) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find(
-        (item) => item.product.id === product.id
+        (item) => String(item.product.id) === String(product.id)
       );
       if (existingItem) {
         return prevItems.map((item) =>
-          item.product.id === product.id
+          String(item.product.id) === String(product.id)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -64,7 +64,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const removeFromCart = useCallback((productId: string) => {
     setCartItems((prevItems) =>
-      prevItems.filter((item) => item.product.id !== productId)
+      prevItems.filter((item) => String(item.product.id) !== productId)
     );
   }, []);
 
@@ -74,7 +74,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       setCartItems((prevItems) =>
         prevItems.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          String(item.product.id) === productId ? { ...item, quantity } : item
         )
       );
     }
@@ -87,7 +87,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
   const cartTotal = cartItems.reduce(
-    (acc, item) => acc + (item.product.variants[0]?.price ?? 0) * item.quantity,
+    (acc, item) => acc + (item.product.price ?? 0) * item.quantity,
     0
   );
 

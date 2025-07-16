@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { createOrder } from "@/lib/orders";
+import { useEffect, useState } from "react";
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, clearCart } = useCart();
@@ -16,24 +18,55 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const shippingCost = 50.00;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Order Placed!",
-      description: "Thank you for your purchase.",
-    });
-    clearCart();
-    router.push("/order-confirmation");
-  };
+  const [shippingAddress, setShippingAddress] = useState({
+    email: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && cartItems.length === 0) {
+      router.push('/');
+    }
+  }, [cartItems, router]);
 
   if (cartItems.length === 0) {
-    // Redirect to home if cart is empty, maybe show a message
-    // This should ideally be handled with a useEffect
-    if(typeof window !== 'undefined') {
-        router.push('/');
-    }
     return null;
   }
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setShippingAddress(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const fullAddress = `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}, ${shippingAddress.country}`;
+
+    try {
+      const order = await createOrder(fullAddress);
+      toast({
+        title: "Order Placed!",
+        description: `Your order #${order.id} has been placed successfully.`,
+      });
+      clearCart();
+      router.push(`/order-confirmation?orderId=${order.id}`);
+    } catch (error: any) {
+      console.error("Order creation failed:", error);
+      console.error("Backend error response:", error.response?.data);
+      toast({
+        title: "Order Failed",
+        description: "There was an error placing your order. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -48,35 +81,35 @@ export default function CheckoutPage() {
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="you@example.com" required />
+                  <Input id="email" type="email" placeholder="you@example.com" required value={shippingAddress.email} onChange={handleAddressChange} />
                 </div>
                 <div>
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" placeholder="John" required />
+                  <Input id="firstName" placeholder="John" required value={shippingAddress.firstName} onChange={handleAddressChange} />
                 </div>
                 <div>
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" placeholder="Doe" required />
+                  <Input id="lastName" placeholder="Doe" required value={shippingAddress.lastName} onChange={handleAddressChange} />
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="address">Address</Label>
-                  <Input id="address" placeholder="123 Spice Lane" required />
+                  <Input id="address" placeholder="123 Spice Lane" required value={shippingAddress.address} onChange={handleAddressChange} />
                 </div>
                 <div>
                   <Label htmlFor="city">City</Label>
-                  <Input id="city" placeholder="New Delhi" required />
+                  <Input id="city" placeholder="New Delhi" required value={shippingAddress.city} onChange={handleAddressChange} />
                 </div>
                 <div>
                   <Label htmlFor="state">State / Province</Label>
-                  <Input id="state" placeholder="Delhi" required />
+                  <Input id="state" placeholder="Delhi" required value={shippingAddress.state} onChange={handleAddressChange} />
                 </div>
                 <div>
                   <Label htmlFor="zip">ZIP / Postal Code</Label>
-                  <Input id="zip" placeholder="110001" required />
+                  <Input id="zip" placeholder="110001" required value={shippingAddress.zip} onChange={handleAddressChange} />
                 </div>
                 <div>
                   <Label htmlFor="country">Country</Label>
-                  <Input id="country" placeholder="India" required />
+                  <Input id="country" placeholder="India" required value={shippingAddress.country} onChange={handleAddressChange} />
                 </div>
               </CardContent>
             </Card>
@@ -120,7 +153,7 @@ export default function CheckoutPage() {
                                 <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                             </div>
                         </div>
-                        <p>₹{(item.product.price * item.quantity).toFixed(2)}</p>
+                        <p>₹{(Number(item.product.price) * item.quantity).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>

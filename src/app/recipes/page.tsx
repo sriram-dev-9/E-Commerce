@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { generateRecipeAction } from "./actions";
-import { getProducts } from "@/lib/products";
+import { fetchProducts } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,7 +62,15 @@ function RecipeDisplay({ recipe }: { recipe: Recipe }) {
 
 export default function RecipesPage() {
   const [state, formAction] = useFormState(generateRecipeAction, initialState);
-  const availableProducts = getProducts().map(p => p.name).join(", ");
+  const [availableProducts, setAvailableProducts] = useState("");
+
+  useEffect(() => {
+    async function loadProducts() {
+      const products = await fetchProducts();
+      setAvailableProducts(products.map(p => p.name).join(", "));
+    }
+    loadProducts();
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-12">

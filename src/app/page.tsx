@@ -1,13 +1,41 @@
+"use client";
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { getProducts } from '@/lib/products';
+import { fetchProducts, Product } from '@/lib/products';
 import { Leaf, ChefHat, Truck } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
 
 export default function Home() {
-  const featuredProducts = getProducts().slice(0, 3);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProducts()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else if (data && Array.isArray((data as any).results)) {
+          setProducts((data as any).results);
+        } else {
+          setProducts([]);
+          setError("Unexpected products response shape.");
+        }
+      })
+      .catch(() => setError("Failed to load products."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  let featuredProducts: Product[] = [];
+  if (Array.isArray(products)) {
+    featuredProducts = products.slice(0, 3);
+  } else {
+    featuredProducts = [];
+  }
 
   return (
     <div className="flex flex-col">
@@ -28,11 +56,17 @@ export default function Home() {
       <section id="featured-products" className="py-16 bg-card">
         <div className="container mx-auto px-4">
           <h2 className="font-headline text-4xl text-center mb-10">Featured Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center">Loading products...</div>
+          ) : error ? (
+            <div className="text-center text-destructive">{error}</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

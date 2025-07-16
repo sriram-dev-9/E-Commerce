@@ -1,11 +1,36 @@
-import { getProducts, Product } from '@/lib/products';
-import { ProductCard } from '@/components/ProductCard';
+"use client";
+import { useEffect, useState } from "react";
+import { fetchProducts, Product } from "@/lib/products";
+import { ProductCard } from "@/components/ProductCard";
 
 export default function ProductsPage() {
-  const products = getProducts();
-  const vegPickles = products.filter((p: Product) => p.subcategory === 'veg');
-  const nonVegPickles = products.filter((p: Product) => p.subcategory === 'nonveg');
-  const podulu = products.filter((p: Product) => p.subcategory === 'podulu');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProducts()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+        } else if (data && Array.isArray((data as any).results)) {
+          setProducts((data as any).results);
+        } else {
+          setProducts([]);
+          setError("Unexpected products response shape.");
+        }
+      })
+      .catch(() => setError("Failed to load products."))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="container mx-auto px-4 py-12 text-center">Loading products...</div>;
+  }
+  if (error) {
+    return <div className="container mx-auto px-4 py-12 text-center text-destructive">{error}</div>;
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -15,24 +40,8 @@ export default function ProductsPage() {
           Explore our handpicked selection of authentic Indian pickles, spices, and essentials. Each product is a promise of quality and tradition.
         </p>
       </div>
-
-      <h2 className="font-headline text-3xl mb-6">Vegetarian Pickles</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12">
-        {vegPickles.map((product: Product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-
-      <h2 className="font-headline text-3xl mb-6">Non-Veg Pickles</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12">
-        {nonVegPickles.map((product: Product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-
-      <h2 className="font-headline text-3xl mb-6">Podulu</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {podulu.map((product: Product) => (
+        {products.map((product: Product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

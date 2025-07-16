@@ -46,19 +46,19 @@ export default function CartPage() {
                     <Link href={`/products/${item.product.id}`}>
                       <h2 className="font-headline text-lg hover:text-primary">{item.product.name}</h2>
                     </Link>
-                    <p className="text-sm text-muted-foreground">₹{item.product.price.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">₹{Number(item.product.price).toFixed(2)}</p>
                   </div>
                   <div className="flex items-center border rounded-md">
-                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}>
+                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(String(item.product.id), item.quantity - 1)}>
                         <Minus className="h-4 w-4" />
                     </Button>
                     <span className="w-10 text-center">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}>
+                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(String(item.product.id), item.quantity + 1)}>
                         <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="font-bold w-20 text-right">₹{(item.product.price * item.quantity).toFixed(2)}</p>
-                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.product.id)}>
+                  <p className="font-bold w-20 text-right">₹{(Number(item.product.price) * item.quantity).toFixed(2)}</p>
+                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(String(item.product.id))}>
                     <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                   </Button>
                 </div>
