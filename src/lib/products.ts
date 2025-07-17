@@ -29,6 +29,7 @@ export type Product = {
   subcategory: string;
   price?: number;
   stock?: number;
+  rating?: number; // Added rating property
   reviews?: Review[];
   variants: Variant[];
 };

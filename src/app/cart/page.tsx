@@ -3,14 +3,14 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useCart } from "@/hooks/use-cart";
+import { useCartContext } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Minus, Plus, Trash2, ShoppingBasket } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function CartPage() {
-  const { items, totalItems, totalPrice, updateQuantity, removeFromCart, initializeCart, isInitialized } = useCart();
+  const { items, totalItems, totalPrice, updateQuantity, removeFromCart, initializeCart, isInitialized } = useCartContext();
 
   useEffect(() => {
     initializeCart();

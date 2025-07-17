@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ShoppingBasket, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/hooks/use-cart";
+import { useCartContext } from "@/hooks/use-cart";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { getToken, removeToken } from "@/lib/api";
@@ -16,7 +16,7 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { totalItems, initializeCart } = useCart();
+  const { totalItems, initializeCart } = useCartContext();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();

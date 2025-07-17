@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart } from "@/hooks/use-cart";
+import { useCartContext } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { createOrder } from "@/lib/orders";
 import { useEffect, useState } from "react";
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { items: cartItems, totalPrice: cartTotal, clearCart } = useCartContext();
   const router = useRouter();
   const { toast } = useToast();
   const shippingCost = 50.00;

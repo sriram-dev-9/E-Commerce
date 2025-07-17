@@ -5,7 +5,7 @@ import Link from "next/link";
 import { type Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCart } from "@/hooks/use-cart";
+import { useCartContext } from "@/hooks/use-cart";
 import { Plus } from "lucide-react";
 
 interface ProductCardProps {
@@ -13,7 +13,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart } = useCart();
+  const { addToCart } = useCartContext();
   return (
     <Card className="flex flex-col overflow-hidden rounded-lg shadow-md transition-shadow hover:shadow-xl h-full">
       <CardHeader className="p-0">
@@ -30,14 +30,18 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardHeader>
       <CardContent className="flex-grow p-4">
         <Link href={`/products/${product.id}`} className="block">
-          <CardTitle className="font-headline text-xl mb-2 hover:text-primary transition-colors">{product.name}</CardTitle>
+          <CardTitle className="font-headline text-xl mb-2 hover:text-primary transition-colors">
+            {product.name}
+          </CardTitle>
         </Link>
-        <p className="text-sm text-muted-foreground">{product.description.substring(0, 100)}...</p>
+        <p className="text-sm text-muted-foreground mb-4">{product.description.substring(0, 100)}...</p>
+        <p className="font-bold text-lg">₹{product.price}</p>
       </CardContent>
-      <CardFooter className="flex flex-col gap-2 items-start p-4">
-        <p className="font-bold text-lg text-primary">₹{Number(product.price).toFixed(2)}</p>
-        <p className="text-sm">Stock: {product.stock}</p>
-        <Button onClick={() => addToCart(product)} size="sm">
+      <CardFooter className="p-4 pt-0">
+        <Button 
+          onClick={() => addToCart(product, 1)} 
+          className="w-full bg-accent hover:bg-accent/90"
+        >
           <Plus className="mr-2 h-4 w-4" /> Add to Cart
         </Button>
       </CardFooter>
