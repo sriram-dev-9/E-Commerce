@@ -1,117 +1,92 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { useState, useCallback, createContext, useContext } from "react";
+import {
+  fetchCart,
+  addToCart as apiAddToCart,
+  updateCartItem as apiUpdateCartItem,
+  removeFromCart as apiRemoveFromCart,
+  clearCart as apiClearCart,
+} from "@/lib/cart";
 import type { Product } from "@/lib/products";
-import { useToast } from "@/hooks/use-toast";
+import type { CartItem } from "@/lib/cart";
 
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
+type CartContextType = ReturnType<typeof useCart> | null;
 
-interface CartContextType {
-  cartItems: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
-  clearCart: () => void;
-  cartCount: number;
-  cartTotal: number;
-}
+const CartContext = createContext<CartContextType>(null);
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+export function useCart() {
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const { toast } = useToast();
-
-  useEffect(() => {
+  const initializeCart = useCallback(async () => {
+    setLoading(true);
     try {
-      const storedCart = localStorage.getItem("pickle_ecommerce_cart");
-      if (storedCart) {
-        setCartItems(JSON.parse(storedCart));
-      }
-    } catch (error) {
-      console.error("Failed to parse cart from localStorage", error);
+      const cart = await fetchCart();
+      setItems(cart.items);
+      setTotalItems(cart.total_items);
+      setTotalPrice(cart.total_price);
+    } finally {
+      setLoading(false);
+      setIsInitialized(true);
     }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("pickle_ecommerce_cart", JSON.stringify(cartItems));
-  }, [cartItems]);
+  const addToCart = async (product: Product, quantity: number) => {
+    setLoading(true);
+    await apiAddToCart(product.id, quantity);
+    await initializeCart();
+  };
 
-  const addToCart = useCallback((product: Product, quantity = 1) => {
-    setCartItems((prevItems) => {
-      const existingItem = prevItems.find(
-        (item) => String(item.product.id) === String(product.id)
-      );
-      if (existingItem) {
-        return prevItems.map((item) =>
-          String(item.product.id) === String(product.id)
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prevItems, { product, quantity }];
-    });
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
-    });
-  }, [toast]);
-
-  const removeFromCart = useCallback((productId: string) => {
-    setCartItems((prevItems) =>
-      prevItems.filter((item) => String(item.product.id) !== productId)
-    );
-  }, []);
-
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = async (itemId: number, quantity: number) => {
+    setLoading(true);
     if (quantity <= 0) {
-      removeFromCart(productId);
+      await apiRemoveFromCart(itemId);
     } else {
-      setCartItems((prevItems) =>
-        prevItems.map((item) =>
-          String(item.product.id) === productId ? { ...item, quantity } : item
-        )
-      );
+      await apiUpdateCartItem(itemId, quantity);
     }
-  }, [removeFromCart]);
+    await initializeCart();
+  };
 
-  const clearCart = useCallback(() => {
-    setCartItems([]);
-  }, []);
+  const removeFromCart = async (itemId: number) => {
+    setLoading(true);
+    await apiRemoveFromCart(itemId);
+    await initializeCart();
+  };
 
-  const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const clearCart = async () => {
+    setLoading(true);
+    await apiClearCart();
+    await initializeCart();
+  };
 
-  const cartTotal = cartItems.reduce(
-    (acc, item) => acc + (item.product.price ?? 0) * item.quantity,
-    0
-  );
+  return {
+    items,
+    totalItems,
+    totalPrice,
+    loading,
+    isInitialized,
+    initializeCart,
+    addToCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+  };
+}
 
-  return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        cartCount,
-        cartTotal,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
-};
+export function CartProvider({ children }: { children: React.ReactNode }) {
+  const cart = useCart();
 
-export const useCart = (): CartContextType => {
+  return <CartContext.Provider value={cart}>{children}</CartContext.Provider>;
+}
+
+export function useCartContext() {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
+  if (context === null) {
+    throw new Error("useCartContext must be used within a CartProvider");
   }
   return context;
-};
+}

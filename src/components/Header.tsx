@@ -16,18 +16,26 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { cartCount } = useCart();
+  const { totalItems, initializeCart } = useCart();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setIsAuthenticated(!!getToken());
-    // Listen for storage changes (e.g., logout in another tab)
-    const handleStorage = () => setIsAuthenticated(!!getToken());
+    initializeCart(); // Initialize cart on component mount
+
+    // Listen for storage changes (e.g., login/logout in another tab)
+    const handleStorage = () => {
+        const authStatus = !!getToken();
+        setIsAuthenticated(authStatus);
+        if(authStatus) {
+            initializeCart();
+        }
+    };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+  }, [initializeCart]);
 
   const handleLogout = () => {
     removeToken();
@@ -63,9 +71,9 @@ export function Header() {
           <Button asChild variant="ghost" size="icon" className="relative">
             <Link href="/cart">
               <ShoppingBasket className="h-5 w-5" />
-              {cartCount > 0 && (
+              {totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground">
-                  {cartCount}
+                  {totalItems}
                 </span>
               )}
               <span className="sr-only">Shopping Cart</span>

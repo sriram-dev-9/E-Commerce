@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ['127.0.0.1', 'placehold.co'],
+    domains: ['127.0.0.1', 'placehold.co','https://ecommerce-backend-zioz.onrender.com/'],
   },
 };
 

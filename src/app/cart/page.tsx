@@ -1,18 +1,26 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Minus, Plus, Trash2, ShoppingBasket } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, cartTotal, cartCount } = useCart();
+  const { items, totalItems, totalPrice, updateQuantity, removeFromCart, initializeCart, isInitialized } = useCart();
 
-  if (cartCount === 0) {
+  useEffect(() => {
+    initializeCart();
+  }, [initializeCart]);
+
+  if (!isInitialized) {
+    return <div className="container mx-auto px-4 py-12 text-center">Loading cart...</div>;
+  }
+
+  if (totalItems === 0) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <ShoppingBasket className="mx-auto h-24 w-24 text-muted-foreground mb-6" />
@@ -32,8 +40,8 @@ export default function CartPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-0">
-              {cartItems.map((item) => (
-                <div key={item.product.id} className="flex items-center gap-4 p-4 border-b last:border-b-0">
+              {items.map((item) => (
+                <div key={item.id} className="flex items-center gap-4 p-4 border-b last:border-b-0">
                   <Image
                     src={item.product.image}
                     alt={item.product.name}
@@ -43,22 +51,22 @@ export default function CartPage() {
                     className="rounded-md"
                   />
                   <div className="flex-grow">
-                    <Link href={`/products/${item.product.id}`}>
+                    <Link href={`/products/${item.product.slug}`}>
                       <h2 className="font-headline text-lg hover:text-primary">{item.product.name}</h2>
                     </Link>
-                    <p className="text-sm text-muted-foreground">₹{Number(item.product.price).toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">₹{item.price.toFixed(2)}</p>
                   </div>
                   <div className="flex items-center border rounded-md">
-                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(String(item.product.id), item.quantity - 1)}>
+                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
                         <Minus className="h-4 w-4" />
                     </Button>
                     <span className="w-10 text-center">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(String(item.product.id), item.quantity + 1)}>
+                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
                         <Plus className="h-4 w-4" />
                     </Button>
                   </div>
-                  <p className="font-bold w-20 text-right">₹{(Number(item.product.price) * item.quantity).toFixed(2)}</p>
-                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(String(item.product.id))}>
+                  <p className="font-bold w-20 text-right">₹{(item.price * item.quantity).toFixed(2)}</p>
+                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
                     <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                   </Button>
                 </div>
@@ -74,7 +82,7 @@ export default function CartPage() {
             <CardContent className="space-y-4">
                 <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>₹{cartTotal.toFixed(2)}</span>
+                    <span>₹{totalPrice.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span>Shipping</span>
@@ -83,7 +91,7 @@ export default function CartPage() {
                 <Separator />
                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>₹{cartTotal.toFixed(2)}</span>
+                    <span>₹{totalPrice.toFixed(2)}</span>
                 </div>
             </CardContent>
             <CardFooter>

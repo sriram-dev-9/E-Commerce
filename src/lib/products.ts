@@ -20,15 +20,17 @@ export type Category = {
 
 export type Product = {
   id: number;
+  slug: string;
   name: string;
   description: string;
   image: string;
   dataAiHint?: string;
   category: Category | number; // may be nested or just id
   subcategory: string;
-  price: number;
-  stock: number;
+  price?: number;
+  stock?: number;
   reviews?: Review[];
+  variants: Variant[];
 };
 
 import { apiGet } from "@/lib/api";
