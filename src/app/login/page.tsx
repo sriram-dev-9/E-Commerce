@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
 function LoginForm() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,7 @@ function LoginForm() {
     setLoading(true);
     
     try {
-      const data = await apiPost<{ access: string; refresh: string }>("/api/users/login/", { username, password });
+      const data = await apiPost<{ access: string; refresh: string }>("/api/users/login/", { email, password });
       if (data.access && data.refresh) {
         setTokens(data.access, data.refresh);
         // Trigger a storage event to update other components
@@ -71,14 +71,14 @@ function LoginForm() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="Enter your username"
+                placeholder="Enter your email address"
               />
             </div>
             <div className="space-y-2">

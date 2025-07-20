@@ -11,7 +11,6 @@ import Link from "next/link";
 
 function RegisterForm() {
   const [form, setForm] = useState({
-    username: "",
     email: "",
     password: "",
     password_confirm: "",
@@ -109,19 +108,7 @@ function RegisterForm() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                value={form.username}
-                onChange={handleChange}
-                required
-                placeholder="Choose a username"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
                 name="email"
@@ -129,7 +116,7 @@ function RegisterForm() {
                 value={form.email}
                 onChange={handleChange}
                 required
-                placeholder="Enter your email"
+                placeholder="Enter your email address"
               />
             </div>
             <div className="space-y-2">
