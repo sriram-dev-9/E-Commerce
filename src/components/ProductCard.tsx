@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCartContext } from "@/hooks/use-cart";
 import { Plus } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -14,12 +15,15 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCartContext();
+  
+  const displayPrice = product.price || (product.variants && product.variants.length > 0 ? product.variants[0].price : 0);
+  
   return (
     <Card className="flex flex-col overflow-hidden rounded-lg shadow-md transition-shadow hover:shadow-xl h-full">
       <CardHeader className="p-0">
-        <Link href={`/products/${product.id}`} className="block">
+        <Link href={`/products/${product.slug}`} className="block">
           <Image
-            src={product.image}
+            src={getImageUrl(product.image)}
             alt={product.name}
             data-ai-hint={product.dataAiHint}
             width={600}
@@ -29,13 +33,13 @@ export function ProductCard({ product }: ProductCardProps) {
         </Link>
       </CardHeader>
       <CardContent className="flex-grow p-4">
-        <Link href={`/products/${product.id}`} className="block">
+        <Link href={`/products/${product.slug}`} className="block">
           <CardTitle className="font-headline text-xl mb-2 hover:text-primary transition-colors">
             {product.name}
           </CardTitle>
         </Link>
         <p className="text-sm text-muted-foreground mb-4">{product.description.substring(0, 100)}...</p>
-        <p className="font-bold text-lg">₹{product.price}</p>
+        <p className="font-bold text-lg">₹{displayPrice}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <Button 

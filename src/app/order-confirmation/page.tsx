@@ -9,24 +9,40 @@ import { useEffect, useState, Suspense } from 'react';
 import { fetchOrder, Order } from '@/lib/orders';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
+import { getAccessToken } from '@/lib/api';
+import { useRouter } from 'next/navigation';
 
 // This component will be wrapped in Suspense
 function OrderConfirmationContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const orderId = searchParams.get('orderId');
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check if user is authenticated
+    if (!getAccessToken()) {
+      router.push('/login');
+      return;
+    }
+
     if (orderId) {
       async function loadOrder() {
         try {
           const fetchedOrder = await fetchOrder(orderId!);
           setOrder(fetchedOrder);
-        } catch (err) {
+        } catch (err: any) {
           console.error("Failed to fetch order:", err);
-          setError("Failed to load order details.");
+          if (err?.response?.status === 401) {
+            // Token might be invalid or expired
+            router.push('/login');
+          } else if (err?.response?.status === 404) {
+            setError("Order not found. Please check the order ID.");
+          } else {
+            setError(err?.response?.data?.detail || "Failed to load order details.");
+          }
         } finally {
           setLoading(false);
         }
@@ -36,7 +52,7 @@ function OrderConfirmationContent() {
       setError("No order ID provided.");
       setLoading(false);
     }
-  }, [orderId]);
+  }, [orderId, router]);
 
   if (loading) {
     return (
@@ -48,8 +64,20 @@ function OrderConfirmationContent() {
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 py-12 text-center text-destructive">
-        {error}
+      <div className="container mx-auto px-4 py-12 text-center">
+        <Card className="max-w-3xl w-full p-8 mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle className="font-headline text-2xl text-destructive">Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-center mb-6">{error}</p>
+            <div className="flex justify-center">
+              <Button asChild>
+                <Link href="/products">Continue Shopping</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }

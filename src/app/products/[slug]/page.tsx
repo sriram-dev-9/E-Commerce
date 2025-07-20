@@ -8,6 +8,7 @@ import { useCartContext } from "@/hooks/use-cart";
 import { Star, StarHalf, Minus, Plus } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getImageUrl } from "@/lib/utils";
 
 function AddToCartSection({ product }: { product: Product }) {
   const { addToCart } = useCartContext();
@@ -95,53 +96,72 @@ function RatingStars({ rating }: { rating: number }) {
   );
 }
 
-export default function ProductPage({ params }: { params: { slug: string } }) {
+export default function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadProduct() {
+    const loadProduct = async () => {
       try {
-        const productData = await fetchProduct(params.slug);
+        setLoading(true);
+        const resolvedParams = await params;
+        const productData = await fetchProduct(resolvedParams.slug);
         setProduct(productData);
-      } catch (error) {
-        console.error("Failed to load product:", error);
+      } catch (err) {
+        console.error("Failed to load product:", err);
+        setError("Product not found");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     loadProduct();
-  }, [params.slug]);
+  }, [params]);
 
   if (loading) {
-    return <div className="container mx-auto px-4 py-12">Loading...</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="bg-gray-300 h-96 w-full mb-8"></div>
+          <div className="bg-gray-300 h-8 w-3/4 mb-4"></div>
+          <div className="bg-gray-300 h-4 w-1/2"></div>
+        </div>
+      </div>
+    );
   }
 
-  if (!product) {
-    return <div className="container mx-auto px-4 py-12">Product not found</div>;
+  if (error || !product) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+        <p className="text-muted-foreground">{error || "The product you're looking for doesn't exist."}</p>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="grid md:grid-cols-2 gap-12">
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid md:grid-cols-2 gap-8 mb-16">
         <div>
-          <Image 
-            src={product.image} 
+          <Image
+            src={getImageUrl(product.image)}
             alt={product.name}
-            data-ai-hint={product.dataAiHint}
-            width={600} 
-            height={600} 
-            className="w-full rounded-lg"
+            width={600}
+            height={600}
+            className="w-full h-auto rounded-lg"
           />
         </div>
+        
         <div>
-          <h1 className="font-headline text-4xl mb-2">{product.name}</h1>
-          {product.rating && <RatingStars rating={product.rating} />}
-          
-          <Separator className="my-6" />
-          
+          <h1 className="font-headline text-3xl md:text-4xl mb-4">{product.name}</h1>
           <p className="text-muted-foreground mb-6">{product.description}</p>
+          
+          {product.rating && (
+            <div className="mb-6">
+              <RatingStars rating={product.rating} />
+            </div>
+          )}
           
           <AddToCartSection product={product} />
         </div>

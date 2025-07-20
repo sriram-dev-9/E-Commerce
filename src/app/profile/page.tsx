@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiGet, apiPut, getToken, removeToken } from "@/lib/api";
+import { apiGet, apiPut, getToken, removeTokens } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -19,17 +19,24 @@ export default function ProfilePage() {
       router.push("/login");
       return;
     }
-    apiGet<{ user: any }>("/api/users/profile/")
+    apiGet<any>("/api/users/profile/")
       .then((data) => {
-        setUser(data.user);
+        setUser(data);
         setForm({
-          first_name: data.user.first_name || "",
-          last_name: data.user.last_name || "",
-          email: data.user.email || ""
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
+          email: data.email || ""
         });
       })
-      .catch(() => {
-        setError("Failed to load profile.");
+      .catch((err) => {
+        console.error("Profile loading error:", err);
+        if (err?.response?.status === 401) {
+          // Token might be invalid or expired
+          removeTokens();
+          router.push("/login");
+        } else {
+          setError("Failed to load profile. Please try again.");
+        }
       })
       .finally(() => setLoading(false));
   }, [router]);
@@ -43,16 +50,23 @@ export default function ProfilePage() {
     setError("");
     setSuccess("");
     try {
-      const data = await apiPut<{ user: any }>("/api/users/profile/", form);
+      const data = await apiPut<{ status: string; user: any }>("/api/users/profile/", form);
       setUser(data.user);
       setSuccess("Profile updated successfully.");
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Update failed.");
+      console.error("Profile update error:", err);
+      if (err?.response?.data?.errors) {
+        // Handle structured error responses
+        const errorMessages = Object.values(err.response.data.errors).flat();
+        setError(errorMessages.join(" "));
+      } else {
+        setError(err?.response?.data?.detail || "Update failed. Please try again.");
+      }
     }
   };
 
   const handleLogout = () => {
-    removeToken();
+    removeTokens();
     router.push("/login");
   };
 
@@ -72,7 +86,7 @@ export default function ProfilePage() {
         </div>
         <div>
           <label htmlFor="email" className="block mb-1">Email</label>
-          <Input id="email" name="email" value={form.email} onChange={handleChange} />
+          <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} />
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         {success && <p className="text-green-600 text-sm">{success}</p>}

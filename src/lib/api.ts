@@ -1,21 +1,43 @@
 // src/lib/api.ts
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
 
-export function getToken() {
+export function getAccessToken() {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('authToken');
+  return localStorage.getItem('accessToken');
 }
 
-export function setToken(token: string) {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('authToken', token);
+export function getRefreshToken() {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('refreshToken');
 }
 
-export function removeToken() {
+// Legacy function names for backward compatibility
+export const getToken = getAccessToken;
+export const removeToken = removeTokens;
+
+export function setTokens(access: string, refresh: string) {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('authToken');
+  localStorage.setItem('accessToken', access);
+  localStorage.setItem('refreshToken', refresh);
+}
+
+// Legacy function name for backward compatibility  
+export const setToken = (token: string) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('accessToken', token);
+};
+
+export function removeTokens() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+}
+
+export function logout() {
+  removeTokens();
+  window.location.href = '/login';
 }
 
 const api = axios.create({
@@ -27,10 +49,10 @@ const api = axios.create({
 
 // Attach token to every request if present
 api.interceptors.request.use((config) => {
-  const token = getToken();
+  const token = getAccessToken();
   if (token) {
     config.headers = config.headers || {};
-    config.headers['Authorization'] = `Token ${token}`;
+    config.headers['Authorization'] = `Bearer ${token}`;
   }
   return config;
 });
@@ -38,11 +60,24 @@ api.interceptors.request.use((config) => {
 // Handle error responses globally
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Handle 401 unauthorized globally if needed
-    if (error.response && error.response.status === 401) {
-      removeToken();
-      // Optionally, redirect to login page
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      const refreshToken = getRefreshToken();
+      if (refreshToken) {
+        try {
+          const response = await axios.post(`${BASE_URL}/api/token/refresh/`, { refresh: refreshToken });
+          const { access } = response.data;
+          setTokens(access, refreshToken);
+          originalRequest.headers['Authorization'] = `Bearer ${access}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          removeTokens();
+          // Optionally, redirect to login page
+          return Promise.reject(refreshError);
+        }
+      }
     }
     return Promise.reject(error);
   }

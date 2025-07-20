@@ -19,9 +19,9 @@ const alegreya = Alegreya({
 });
 
 export const metadata: Metadata = {
-  title: "Pickle E-Commerce",
+  title: "AndrAmrut Naturals - Every Taste Has A Story",
   description:
-    "Authentic Indian pickles, spices, and more, delivered to your door.",
+    "Every Taste Has A Story - Authentic Indian pickles, spices, and more, delivered to your door.",
 };
 
 export default function RootLayout({

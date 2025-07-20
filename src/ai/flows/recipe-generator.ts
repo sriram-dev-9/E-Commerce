@@ -37,20 +37,19 @@ const prompt = ai.definePrompt({
   name: 'recipeGeneratorPrompt',
   input: {schema: RecipeGeneratorInputSchema},
   output: {schema: RecipeGeneratorOutputSchema},
-  prompt: `You are a world-class chef specializing in Indian cuisine. Given the ingredients a user has at home and the products available in our Pickle E-Commerce store, suggest a delicious and creative recipe.
+  prompt: `You are a world-class chef specializing in Indian cuisine. Given the ingredients a user has at home and the products available in our AndrAmrut Naturals store, suggest a delicious and creative recipe.
 
-Ingredients at home: {{{ingredients}}}
+Remember our brand promise: "Every Taste Has A Story"
 
-Available Pickle E-Commerce products: {{{availableProducts}}}
+Available AndrAmrut Naturals products: {{{availableProducts}}}
 
-Consider the available products to enhance the recipe and make it uniquely flavorful. Explain your reasoning for choosing this recipe based on the available ingredients and Pickle E-Commerce products.
+Consider the available products to enhance the recipe and make it uniquely flavorful. Explain your reasoning for choosing this recipe based on the available ingredients and AndrAmrut Naturals products.
 
-Respond in the following format:
-
-Recipe Name: [Recipe Name]
-Ingredients: [List of ingredients with quantities]
-Instructions: [Step-by-step cooking instructions]
-Reasoning: [Explanation of why this recipe is suitable and how Pickle E-Commerce products enhance it]`,
+Please provide your response in the following format:
+Recipe Name: [Name]
+Ingredients: [List]
+Instructions: [Step by step]
+Reasoning: [Explanation of why this recipe is suitable and how AndrAmrut Naturals products enhance it]`,
 });
 
 const recipeGeneratorFlow = ai.defineFlow(

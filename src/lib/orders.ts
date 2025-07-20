@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from "@/lib/api";
+import { apiGet, apiPost, apiPut } from "@/lib/api";
 import { Product } from "./products";
 
 export type OrderItem = {
@@ -29,4 +29,8 @@ export async function fetchOrders(): Promise<Order[]> {
 
 export async function fetchOrder(orderId: string): Promise<Order> {
   return apiGet<Order>(`/api/orders/${orderId}/`);
-} 
+}
+
+export async function updateOrderStatus(orderId: string, status: string): Promise<Order> {
+  return apiPut<Order>(`/api/orders/${orderId}/update/`, { status });
+}

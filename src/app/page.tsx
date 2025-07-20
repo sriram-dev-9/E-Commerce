@@ -42,10 +42,10 @@ export default function Home() {
       <section className="bg-background py-20 md:py-32">
         <div className="container mx-auto px-4 text-center">
           <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl text-primary mb-4">
-            Pickle E-Commerce
+            AndrAmrut Naturals
           </h1>
           <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-muted-foreground">
-            Authentic Indian pickles, spices, and culinary treasures, curated with passion and delivered to your doorstep.
+            Every Taste Has A Story - Authentic Indian pickles, spices, and culinary treasures, curated with passion and delivered to your doorstep.
           </p>
           <Button asChild size="lg">
             <Link href="/products">Shop All Products</Link>
@@ -98,7 +98,7 @@ export default function Home() {
 
       <section id="why-us" className="py-16 bg-card">
         <div className="container mx-auto px-4">
-          <h2 className="font-headline text-4xl text-center mb-10">Why Choose Pickle E-Commerce?</h2>
+          <h2 className="font-headline text-4xl text-center mb-10">Why Choose AndrAmrut Naturals?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <Card className="bg-transparent border-none shadow-none">
               <CardContent className="flex flex-col items-center">

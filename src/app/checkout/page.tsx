@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { createOrder } from "@/lib/orders";
 import { useEffect, useState } from "react";
+import { getToken } from "@/lib/api";
 
 export default function CheckoutPage() {
   const { items: cartItems, totalPrice: cartTotal, clearCart } = useCartContext();
@@ -30,10 +31,21 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    // Redirect if cart is empty
     if (typeof window !== 'undefined' && cartItems.length === 0) {
       router.push('/');
     }
-  }, [cartItems, router]);
+    
+    // Redirect if user is not authenticated
+    if (typeof window !== 'undefined' && !getToken()) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to proceed with checkout.",
+        variant: "destructive",
+      });
+      router.push('/login?redirect=checkout');
+    }
+  }, [cartItems, router, toast]);
 
   if (cartItems.length === 0) {
     return null;
@@ -47,7 +59,7 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const fullAddress = `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}, ${shippingAddress.country}`;
+    const fullAddress = `${shippingAddress.firstName} ${shippingAddress.lastName}, ${shippingAddress.email}, ${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}, ${shippingAddress.country}`;
 
     try {
       const order = await createOrder(fullAddress);
@@ -62,7 +74,7 @@ export default function CheckoutPage() {
       console.error("Backend error response:", error.response?.data);
       toast({
         title: "Order Failed",
-        description: "There was an error placing your order. Please try again.",
+        description: error.response?.data?.detail || "There was an error placing your order. Please try again.",
         variant: "destructive",
       });
     }

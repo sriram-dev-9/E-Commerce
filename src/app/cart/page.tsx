@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Minus, Plus, Trash2, ShoppingBasket } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { getImageUrl } from "@/lib/utils";
 
 export default function CartPage() {
   const { items, totalItems, totalPrice, updateQuantity, removeFromCart, initializeCart, isInitialized } = useCartContext();
@@ -43,7 +44,7 @@ export default function CartPage() {
               {items.map((item) => (
                 <div key={item.id} className="flex items-center gap-4 p-4 border-b last:border-b-0">
                   <Image
-                    src={item.product.image}
+                    src={getImageUrl(item.product.image)}
                     alt={item.product.name}
                     data-ai-hint={item.product.dataAiHint}
                     width={100}

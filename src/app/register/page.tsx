@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { apiPost, setToken } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { setTokens, apiPost, getToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
@@ -16,7 +19,17 @@ export default function RegisterPage() {
     last_name: ""
   });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/';
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (getToken()) {
+      router.push(redirectTo);
+    }
+  }, [router, redirectTo]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,51 +38,138 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
+    
     if (form.password !== form.password_confirm) {
       setError("Passwords do not match.");
+      setLoading(false);
       return;
     }
+    
     try {
-      const data = await apiPost<{ user: any; token: string }>("/api/users/register/", form);
-      setToken(data.token);
-      router.push("/");
+      const data = await apiPost<{ access: string; refresh: string }>("/api/users/register/", form);
+      if (data.access && data.refresh) {
+        setTokens(data.access, data.refresh);
+        // Trigger a storage event to update other components
+        window.dispatchEvent(new Event('storage'));
+        router.push(redirectTo);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     } catch (err: any) {
-      setError(err?.response?.data?.detail || "Registration failed. Please try again.");
+      console.error("Registration error:", err);
+      if (err?.response?.data?.errors) {
+        // Handle structured error responses
+        const errorMessages = Object.values(err.response.data.errors).flat();
+        setError(errorMessages.join(" "));
+      } else {
+        setError(err?.response?.data?.detail || "Registration failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-md">
-      <h1 className="font-headline text-3xl mb-6 text-center">Register</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="username" className="block mb-1">Username</label>
-          <Input id="username" name="username" value={form.username} onChange={handleChange} required />
-        </div>
-        <div>
-          <label htmlFor="email" className="block mb-1">Email</label>
-          <Input id="email" name="email" type="email" value={form.email} onChange={handleChange} required />
-        </div>
-        <div>
-          <label htmlFor="password" className="block mb-1">Password</label>
-          <Input id="password" name="password" type="password" value={form.password} onChange={handleChange} required />
-        </div>
-        <div>
-          <label htmlFor="password_confirm" className="block mb-1">Confirm Password</label>
-          <Input id="password_confirm" name="password_confirm" type="password" value={form.password_confirm} onChange={handleChange} required />
-        </div>
-        <div>
-          <label htmlFor="first_name" className="block mb-1">First Name</label>
-          <Input id="first_name" name="first_name" value={form.first_name} onChange={handleChange} />
-        </div>
-        <div>
-          <label htmlFor="last_name" className="block mb-1">Last Name</label>
-          <Input id="last_name" name="last_name" value={form.last_name} onChange={handleChange} />
-        </div>
-        {error && <p className="text-destructive text-sm">{error}</p>}
-        <Button type="submit" className="w-full">Register</Button>
-        <p className="text-center text-sm mt-2">Already have an account? <a href="/login" className="text-primary underline">Login</a></p>
-      </form>
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-headline">Create Account</CardTitle>
+          <CardDescription>Join us to discover authentic flavors - Every Taste Has A Story</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  name="first_name"
+                  type="text"
+                  value={form.first_name}
+                  onChange={handleChange}
+                  placeholder="First name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  name="last_name"
+                  type="text"
+                  value={form.last_name}
+                  onChange={handleChange}
+                  placeholder="Last name"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                type="text"
+                value={form.username}
+                onChange={handleChange}
+                required
+                placeholder="Choose a username"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                required
+                placeholder="Enter your email"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                placeholder="Create a password"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password_confirm">Confirm Password</Label>
+              <Input
+                id="password_confirm"
+                name="password_confirm"
+                type="password"
+                value={form.password_confirm}
+                onChange={handleChange}
+                required
+                placeholder="Confirm your password"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating account..." : "Create Account"}
+            </Button>
+          </form>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link href={`/login${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-primary hover:underline">
+                Sign in here
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
