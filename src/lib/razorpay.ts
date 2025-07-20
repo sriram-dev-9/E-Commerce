@@ -121,6 +121,63 @@ export const openRazorpayCheckout = async (options: RazorpayOptions): Promise<vo
   razorpay.open();
 };
 
+// High-level function to initiate Razorpay payment
+export const initiateRazorpayPayment = async (
+  paymentOrder: CreatePaymentOrderResponse,
+  formData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+  },
+  onSuccess: (orderId: number) => void,
+  onFailure: (error: string) => void
+): Promise<void> => {
+  try {
+    const options: RazorpayOptions = {
+      key: paymentOrder.key_id,
+      amount: paymentOrder.amount,
+      currency: paymentOrder.currency,
+      name: 'AndrAmrut Naturals',
+      description: 'Every Taste Has A Story',
+      order_id: paymentOrder.razorpay_order_id,
+      handler: async (response: RazorpayResponse) => {
+        try {
+          // Verify payment with backend
+          const verificationResult = await verifyPayment({
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          });
+
+          if (verificationResult.success) {
+            onSuccess(paymentOrder.order_id);
+          } else {
+            onFailure(verificationResult.message || 'Payment verification failed');
+          }
+        } catch (error: any) {
+          onFailure(handlePaymentError(error));
+        }
+      },
+      prefill: {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        contact: formData.phone,
+      },
+      theme: RAZORPAY_CONFIG.theme,
+      modal: {
+        ondismiss: () => {
+          onFailure('Payment was cancelled by user');
+        }
+      }
+    };
+
+    await openRazorpayCheckout(options);
+  } catch (error: any) {
+    onFailure(handlePaymentError(error));
+  }
+};
+
 // Utility function to format amount for Razorpay (in paisa)
 export const formatAmountForRazorpay = (amount: number): number => {
   return Math.round(amount * 100);
