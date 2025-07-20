@@ -39,13 +39,27 @@ function RegisterForm() {
     setError("");
     setLoading(true);
     
+    // Frontend validation
+    if (!form.email || !form.password || !form.password_confirm) {
+      setError("Please fill in all required fields.");
+      setLoading(false);
+      return;
+    }
+    
     if (form.password !== form.password_confirm) {
       setError("Passwords do not match.");
       setLoading(false);
       return;
     }
     
+    if (form.password.length < 8) {
+      setError("Password must be at least 8 characters long.");
+      setLoading(false);
+      return;
+    }
+    
     try {
+      console.log("Sending registration data:", form);
       const data = await apiPost<{ access: string; refresh: string }>("/api/users/register/", form);
       if (data.access && data.refresh) {
         setTokens(data.access, data.refresh);
@@ -57,10 +71,16 @@ function RegisterForm() {
       }
     } catch (err: any) {
       console.error("Registration error:", err);
+      console.error("Error response:", err?.response?.data);
       if (err?.response?.data?.errors) {
         // Handle structured error responses
-        const errorMessages = Object.values(err.response.data.errors).flat();
-        setError(errorMessages.join(" "));
+        const errorMessages = Object.entries(err.response.data.errors).map(([field, messages]) => {
+          if (Array.isArray(messages)) {
+            return `${field}: ${messages.join(', ')}`;
+          }
+          return `${field}: ${messages}`;
+        });
+        setError(errorMessages.join(' | '));
       } else {
         setError(err?.response?.data?.detail || "Registration failed. Please try again.");
       }
