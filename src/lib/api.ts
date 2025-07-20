@@ -1,7 +1,7 @@
 // src/lib/api.ts
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.andramrut.in';
 
 export function getAccessToken() {
   if (typeof window === 'undefined') return null;

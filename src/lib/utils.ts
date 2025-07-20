@@ -14,7 +14,7 @@ export function getImageUrl(imagePath: string): string {
     return imagePath;
   }
   
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.andramrut.in';
   
   // If it starts with /media/, construct the full URL
   if (imagePath.startsWith('/media/')) {
