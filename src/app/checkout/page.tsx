@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCartContext } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import {
 import { getToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
-export default function CheckoutPage() {
+function CheckoutForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const retryOrderId = searchParams.get('retry_order');
@@ -502,5 +502,17 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+      </div>
+    }>
+      <CheckoutForm />
+    </Suspense>
   );
 }
