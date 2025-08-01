@@ -6,7 +6,7 @@ import { type Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCartContext } from "@/hooks/use-cart";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -14,7 +14,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart } = useCartContext();
+  const { addToCart, isAddingToCart } = useCartContext();
+  const isLoading = isAddingToCart(product.id);
   
   const displayPrice = product.price || (product.variants && product.variants.length > 0 ? product.variants[0].price : 0);
   
@@ -44,9 +45,20 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardFooter className="p-4 pt-0">
         <Button 
           onClick={() => addToCart(product, 1)} 
-          className="w-full bg-accent hover:bg-accent/90"
+          disabled={isLoading}
+          className="w-full bg-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Plus className="mr-2 h-4 w-4" /> Add to Cart
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Adding...
+            </>
+          ) : (
+            <>
+              <Plus className="mr-2 h-4 w-4" />
+              Add to Cart
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

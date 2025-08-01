@@ -5,19 +5,20 @@ import Image from "next/image";
 import { fetchProduct, type Product, type Review, type Variant } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { useCartContext } from "@/hooks/use-cart";
-import { Star, StarHalf, Minus, Plus } from "lucide-react";
+import { Star, StarHalf, Minus, Plus, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getImageUrl } from "@/lib/utils";
 
 function AddToCartSection({ product }: { product: Product }) {
-  const { addToCart } = useCartContext();
+  const { addToCart, isAddingToCart } = useCartContext();
   const [variantIdx, setVariantIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
   const hasVariants = product.variants && product.variants.length > 0;
   const variant = hasVariants ? product.variants[variantIdx] : undefined;
   const price = variant ? variant.price : product.price;
+  const isLoading = isAddingToCart(product.id);
 
   const handleAddToCart = () => {
     addToCart(product, quantity);
@@ -50,7 +51,7 @@ function AddToCartSection({ product }: { product: Product }) {
             variant="ghost" 
             size="icon" 
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1}
+            disabled={quantity <= 1 || isLoading}
           >
             <Minus className="h-4 w-4" />
           </Button>
@@ -59,6 +60,7 @@ function AddToCartSection({ product }: { product: Product }) {
             variant="ghost" 
             size="icon" 
             onClick={() => setQuantity(quantity + 1)}
+            disabled={isLoading}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -73,9 +75,17 @@ function AddToCartSection({ product }: { product: Product }) {
       <Button 
         onClick={handleAddToCart} 
         size="lg" 
-        className="w-full bg-accent hover:bg-accent/90"
+        disabled={isLoading}
+        className="w-full bg-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Add to Cart
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Adding to Cart...
+          </>
+        ) : (
+          'Add to Cart'
+        )}
       </Button>
     </div>
   );
