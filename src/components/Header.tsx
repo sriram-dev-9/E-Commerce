@@ -59,6 +59,12 @@ export function Header() {
     removeTokens();
     setIsAuthenticated(false);
     setUser(null);
+    
+    // Sign out from Google if available
+    if (typeof window !== 'undefined' && window.google) {
+      window.google.accounts.id.disableAutoSelect();
+    }
+    
     router.push('/');
   };
 
@@ -133,11 +139,8 @@ export function Header() {
                 </DropdownMenu>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <Button asChild variant="ghost" size="sm">
-                    <Link href="/login">Login</Link>
-                  </Button>
                   <Button asChild size="sm">
-                    <Link href="/register">Sign Up</Link>
+                    <Link href="/login">Sign In / Sign Up</Link>
                   </Button>
                 </div>
               )}
@@ -193,11 +196,8 @@ export function Header() {
                       </>
                     ) : (
                       <div className="border-t pt-6 flex flex-col gap-4">
-                        <Button asChild variant="outline" className="w-full" onClick={() => setSheetOpen(false)}>
-                          <Link href="/login">Login</Link>
-                        </Button>
                         <Button asChild className="w-full" onClick={() => setSheetOpen(false)}>
-                          <Link href="/register">Sign Up</Link>
+                          <Link href="/login">Sign In / Sign Up</Link>
                         </Button>
                       </div>
                     )}

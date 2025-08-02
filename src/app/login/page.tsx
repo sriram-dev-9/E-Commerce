@@ -2,18 +2,13 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { setTokens, apiPost, getToken } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { getToken } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import Link from "next/link";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
@@ -25,83 +20,53 @@ function LoginForm() {
     }
   }, [router, redirectTo]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleGoogleSuccess = () => {
+    // Clear any existing errors
     setError("");
-    setLoading(true);
-    
-    try {
-      const data = await apiPost<{ access: string; refresh: string }>("/api/users/login/", { email, password });
-      if (data.access && data.refresh) {
-        setTokens(data.access, data.refresh);
-        // Trigger a storage event to update other components
-        window.dispatchEvent(new Event('storage'));
-        router.push(redirectTo);
-      } else {
-        setError("Login failed. Please check your credentials.");
-      }
-    } catch (err: any) {
-      console.error("Login error:", err);
-      if (err?.response?.data?.detail) {
-        setError(err.response.data.detail);
-      } else if (err?.response?.data?.errors) {
-        // Handle structured error responses
-        const errorMessages = Object.values(err.response.data.errors).flat();
-        setError(errorMessages.join(" "));
-      } else {
-        setError(err?.response?.data?.detail || "Login failed. Please try again.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    // The GoogleSignInButton will handle the redirect
+    router.push(redirectTo);
+  };
+
+  const handleGoogleError = (errorMessage: string) => {
+    setError(errorMessage);
   };
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-md">
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account to continue your culinary journey</CardDescription>
+          <CardTitle className="text-2xl font-headline">Welcome</CardTitle>
+          <CardDescription>Sign in or create your account to continue your culinary journey</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="Enter your email address"
-              />
+          {error && (
+            <div className="bg-destructive/15 border border-destructive/20 text-destructive px-4 py-3 rounded mb-4">
+              {error}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Enter your password"
-              />
+          )}
+          
+          <GoogleSignInButton
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            buttonText="Continue with Google"
+            className="mb-4"
+          />
+          
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                One Click Sign-In & Sign-Up
+              </span>
+            </div>
+          </div>
+          
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href={`/register${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-primary hover:underline">
-                Sign up here
-              </Link>
+              New users will automatically get an account created.<br/>
+              Existing users will be signed in instantly.
             </p>
           </div>
         </CardContent>

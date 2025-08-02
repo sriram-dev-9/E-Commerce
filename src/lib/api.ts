@@ -37,7 +37,34 @@ export function removeTokens() {
 
 export function logout() {
   removeTokens();
+  localStorage.removeItem('user'); // Also remove user data
+  
+  // Sign out from Google if available
+  if (typeof window !== 'undefined' && window.google) {
+    window.google.accounts.id.disableAutoSelect();
+  }
+  
   window.location.href = '/login';
+}
+
+// Google OAuth helper function
+export async function googleAuth(googleToken: string) {
+  try {
+    const response = await api.post('/users/auth/google/', {
+      token: googleToken
+    });
+    
+    if (response.data.success) {
+      setTokens(response.data.tokens.access, response.data.tokens.refresh);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      return response.data;
+    } else {
+      throw new Error(response.data.error || 'Google authentication failed');
+    }
+  } catch (error: any) {
+    console.error('Google Auth Error:', error);
+    throw error;
+  }
 }
 
 const api = axios.create({

@@ -31,6 +31,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${belleza.variable} ${alegreya.variable}`}>
+      <head>
+        <script 
+          src="https://accounts.google.com/gsi/client" 
+          async 
+          defer
+        />
+      </head>
       <body className="font-body antialiased">
         <CartProvider>
           <div className="flex min-h-screen flex-col">
