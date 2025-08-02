@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { Belleza, Alegreya } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartProvider } from "@/hooks/use-cart";
 import { Toaster } from "@/components/ui/toaster";
 
-const belleza = Belleza({
+const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-belleza",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-playfair",
 });
 
-const alegreya = Alegreya({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "700"],
-  variable: "--font-alegreya",
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${belleza.variable} ${alegreya.variable}`}>
+    <html lang="en" className={`${playfairDisplay.variable} ${inter.variable}`}>
       <head>
         <script 
           src="https://accounts.google.com/gsi/client" 

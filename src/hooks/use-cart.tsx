@@ -138,6 +138,43 @@ export function useCart() {
   }, [checkAuth, updateLocalState, handleAuthError, toast]);
 
   const addToCart = async (product: Product, quantity: number) => {
+    // Check stock before adding
+    const getTotalStock = (): number => {
+      if (product.stock !== undefined) {
+        return product.stock;
+      }
+      if (product.variants && product.variants.length > 0) {
+        return product.variants.reduce((total, variant) => total + variant.stock, 0);
+      }
+      return 0;
+    };
+    
+    const totalStock = getTotalStock();
+    
+    // Check if product is out of stock
+    if (totalStock <= 0) {
+      toast({
+        title: "Out of Stock",
+        description: `${product.name} is currently out of stock.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check current quantity in cart
+    const currentItem = items.find(item => item.product.id === product.id);
+    const currentQuantity = currentItem ? currentItem.quantity : 0;
+    
+    // Check if adding this quantity would exceed stock
+    if (currentQuantity + quantity > totalStock) {
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${totalStock} items available. You already have ${currentQuantity} in your cart.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setAddingProducts(prev => new Set(prev).add(product.id));
     try {
       if (checkAuth()) {
@@ -197,6 +234,34 @@ export function useCart() {
   };
 
   const updateQuantity = async (itemId: number, quantity: number) => {
+    // Find the item to get product details for stock checking
+    const item = items.find(item => item.id === itemId);
+    if (!item) return;
+    
+    // Check stock if increasing quantity
+    if (quantity > 0) {
+      const getTotalStock = (): number => {
+        if (item.product.stock !== undefined) {
+          return item.product.stock;
+        }
+        if (item.product.variants && item.product.variants.length > 0) {
+          return item.product.variants.reduce((total, variant) => total + variant.stock, 0);
+        }
+        return 0;
+      };
+      
+      const totalStock = getTotalStock();
+      
+      if (quantity > totalStock) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Only ${totalStock} items available for ${item.product.name}.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     setLoading(true);
     try {
       if (checkAuth()) {

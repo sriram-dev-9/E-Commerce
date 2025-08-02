@@ -28,6 +28,7 @@ function CheckoutForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [paymentLoading, setPaymentLoading] = useState(false);
 
   // Form data
@@ -65,6 +66,76 @@ function CheckoutForm() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+    
+    // Special handling for phone number
+    if (name === 'phone') {
+      // Remove any non-digit characters except +
+      let cleanValue = value.replace(/[^\d+]/g, '');
+      
+      // Handle different input scenarios
+      if (cleanValue.length === 0) {
+        // Empty field
+        setFormData(prev => ({ ...prev, [name]: '' }));
+        return;
+      }
+      
+      // If user starts with +91, keep it
+      if (cleanValue.startsWith('+91')) {
+        cleanValue = '+91' + cleanValue.substring(3).slice(0, 10);
+      }
+      // If user starts with 91 (without +), add +
+      else if (cleanValue.startsWith('91') && cleanValue.length > 2) {
+        cleanValue = '+91' + cleanValue.substring(2).slice(0, 10);
+      }
+      // If user starts with + but not +91, replace with +91
+      else if (cleanValue.startsWith('+') && !cleanValue.startsWith('+91')) {
+        cleanValue = '+91' + cleanValue.substring(1).slice(0, 10);
+      }
+      // If user enters 10 digits starting with 6-9, add +91
+      else if (/^[6-9]\d{0,9}$/.test(cleanValue)) {
+        cleanValue = cleanValue.slice(0, 10);
+        // Only add +91 if we have a valid start
+        if (cleanValue.length > 0) {
+          cleanValue = '+91' + cleanValue;
+        }
+      }
+      // For any other case, try to extract valid digits
+      else {
+        const digits = cleanValue.replace(/\D/g, '');
+        if (digits.length > 0 && /^[6-9]/.test(digits)) {
+          cleanValue = '+91' + digits.slice(0, 10);
+        } else {
+          cleanValue = value; // Keep original input if invalid
+        }
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: cleanValue
+      }));
+      return;
+    }
+    
+    // Special handling for pincode - only digits
+    if (name === 'pincode') {
+      const cleanValue = value.replace(/\D/g, '').slice(0, 6);
+      setFormData(prev => ({
+        ...prev,
+        [name]: cleanValue
+      }));
+      return;
+    }
+    
+    // Regular handling for other fields
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -72,36 +143,57 @@ function CheckoutForm() {
   };
 
   const validateForm = () => {
+    const newFieldErrors: Record<string, string> = {};
+    let isValid = true;
+
     const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'pincode'];
     for (const field of required) {
       if (!formData[field as keyof typeof formData]) {
-        setError(`Please fill in your ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
-        return false;
+        newFieldErrors[field] = `Please fill in your ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}`;
+        isValid = false;
       }
     }
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
-      return false;
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newFieldErrors.email = 'Please enter a valid email address';
+      isValid = false;
     }
 
-    // Phone validation
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(formData.phone)) {
-      setError('Please enter a valid 10-digit phone number');
-      return false;
+    // Phone validation - accept both +91 format and 10-digit format
+    if (formData.phone) {
+      const phoneValue = formData.phone.replace(/\s/g, ''); // Remove any spaces
+      const phoneRegex10 = /^[6-9]\d{9}$/; // 10 digit starting with 6-9
+      const phoneRegex91 = /^\+91[6-9]\d{9}$/; // +91 followed by 10 digits
+      
+      if (!phoneRegex10.test(phoneValue) && !phoneRegex91.test(phoneValue)) {
+        newFieldErrors.phone = 'Please enter a valid phone number (10 digits starting with 6-9)';
+        isValid = false;
+      }
     }
 
     // Pincode validation
-    const pincodeRegex = /^\d{6}$/;
-    if (!pincodeRegex.test(formData.pincode)) {
-      setError('Please enter a valid 6-digit pincode');
-      return false;
+    if (formData.pincode && !/^\d{6}$/.test(formData.pincode)) {
+      newFieldErrors.pincode = 'Please enter a valid 6-digit pincode';
+      isValid = false;
     }
 
-    return true;
+    setFieldErrors(newFieldErrors);
+    
+    if (!isValid) {
+      // Scroll to first error field
+      const firstErrorField = Object.keys(newFieldErrors)[0];
+      const errorElement = document.getElementById(firstErrorField);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        errorElement.focus();
+      }
+      setError('Please fix the errors below and try again.');
+    } else {
+      setError(null);
+    }
+
+    return isValid;
   };
 
   const handlePayment = async (e: React.FormEvent) => {
@@ -232,8 +324,12 @@ function CheckoutForm() {
                       type="text"
                       value={formData.firstName}
                       onChange={handleInputChange}
+                      className={fieldErrors.firstName ? 'border-red-500 focus:border-red-500' : ''}
                       required
                     />
+                    {fieldErrors.firstName && (
+                      <p className="text-sm text-red-600 mt-1">{fieldErrors.firstName}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="lastName">Last Name *</Label>
@@ -243,8 +339,12 @@ function CheckoutForm() {
                       type="text"
                       value={formData.lastName}
                       onChange={handleInputChange}
+                      className={fieldErrors.lastName ? 'border-red-500 focus:border-red-500' : ''}
                       required
                     />
+                    {fieldErrors.lastName && (
+                      <p className="text-sm text-red-600 mt-1">{fieldErrors.lastName}</p>
+                    )}
                   </div>
                 </div>
 
@@ -256,9 +356,13 @@ function CheckoutForm() {
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="your.email@example.com"
+                    placeholder="support@andramrut.in"
+                    className={fieldErrors.email ? 'border-red-500 focus:border-red-500' : ''}
                     required
                   />
+                  {fieldErrors.email && (
+                    <p className="text-sm text-red-600 mt-1">{fieldErrors.email}</p>
+                  )}
                 </div>
 
                 <div>
@@ -269,9 +373,17 @@ function CheckoutForm() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="10-digit mobile number"
+                    placeholder="+91 6300 427 273"
+                    className={`font-mono ${fieldErrors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
                     required
                   />
+                  {fieldErrors.phone ? (
+                    <p className="text-sm text-red-600 mt-1">{fieldErrors.phone}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enter 10 digits or +91 followed by 10 digits
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -283,8 +395,12 @@ function CheckoutForm() {
                     value={formData.address}
                     onChange={handleInputChange}
                     placeholder="Street address, apartment, suite, etc."
+                    className={fieldErrors.address ? 'border-red-500 focus:border-red-500' : ''}
                     required
                   />
+                  {fieldErrors.address && (
+                    <p className="text-sm text-red-600 mt-1">{fieldErrors.address}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -296,8 +412,12 @@ function CheckoutForm() {
                       type="text"
                       value={formData.city}
                       onChange={handleInputChange}
+                      className={fieldErrors.city ? 'border-red-500 focus:border-red-500' : ''}
                       required
                     />
+                    {fieldErrors.city && (
+                      <p className="text-sm text-red-600 mt-1">{fieldErrors.city}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="state">State *</Label>
@@ -307,8 +427,12 @@ function CheckoutForm() {
                       type="text"
                       value={formData.state}
                       onChange={handleInputChange}
+                      className={fieldErrors.state ? 'border-red-500 focus:border-red-500' : ''}
                       required
                     />
+                    {fieldErrors.state && (
+                      <p className="text-sm text-red-600 mt-1">{fieldErrors.state}</p>
+                    )}
                   </div>
                 </div>
 
@@ -319,11 +443,21 @@ function CheckoutForm() {
                       id="pincode"
                       name="pincode"
                       type="text"
+                      inputMode="numeric"
                       value={formData.pincode}
                       onChange={handleInputChange}
-                      placeholder="6-digit pincode"
+                      placeholder="560001"
+                      maxLength={6}
+                      className={`font-mono ${fieldErrors.pincode ? 'border-red-500 focus:border-red-500' : ''}`}
                       required
                     />
+                    {fieldErrors.pincode ? (
+                      <p className="text-sm text-red-600 mt-1">{fieldErrors.pincode}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        6-digit area pincode
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="country">Country</Label>
@@ -489,11 +623,11 @@ function CheckoutForm() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-gray-600 mb-2">
-                  Our customer support team is here to help
+                  If you continue to experience issues, please contact our support team.
                 </p>
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>📧 support@andramrut.in</p>
-                  <p>📞 +91 XXX XXX XXXX</p>
+                  <p>📞 +91 6300 427 273</p>
                   <p>🕒 Mon-Fri, 9 AM - 6 PM IST</p>
                 </div>
               </CardContent>

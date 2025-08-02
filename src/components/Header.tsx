@@ -12,7 +12,8 @@ import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "/products", label: "Shop" },
-  { href: "/recipes", label: "Recipes" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function Header() {

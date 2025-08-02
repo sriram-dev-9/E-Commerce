@@ -47,7 +47,23 @@ export default function CartPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardContent className="p-0">
-              {items.map((item) => (
+              {items.map((item) => {
+                // Calculate available stock for this item
+                const getAvailableStock = (): number => {
+                  if (item.product.stock !== undefined) {
+                    return item.product.stock;
+                  }
+                  if (item.product.variants && item.product.variants.length > 0) {
+                    return item.product.variants.reduce((total, variant) => total + variant.stock, 0);
+                  }
+                  return 0;
+                };
+                
+                const availableStock = getAvailableStock();
+                const isOutOfStock = availableStock <= 0;
+                const exceedsStock = item.quantity > availableStock;
+                
+                return (
                 <div key={item.id} className="flex items-center gap-4 p-4 border-b last:border-b-0">
                   <Image
                     src={getImageUrl(item.product.image)}
@@ -62,13 +78,35 @@ export default function CartPage() {
                       <h2 className="font-headline text-lg hover:text-primary">{item.product.name}</h2>
                     </Link>
                     <p className="text-sm text-muted-foreground">₹{formatPrice(item.price)}</p>
+                    {/* Stock status */}
+                    {isOutOfStock ? (
+                      <p className="text-sm text-red-600 font-medium">Out of Stock</p>
+                    ) : exceedsStock ? (
+                      <p className="text-sm text-orange-600 font-medium">
+                        Only {availableStock} available (reduce quantity)
+                      </p>
+                    ) : availableStock <= 5 ? (
+                      <p className="text-sm text-orange-600 font-medium">
+                        Only {availableStock} in stock
+                      </p>
+                    ) : null}
                   </div>
                   <div className="flex items-center border rounded-md">
-                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      disabled={item.quantity <= 1}
+                    >
                         <Minus className="h-4 w-4" />
                     </Button>
                     <span className="w-10 text-center">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      disabled={isOutOfStock || item.quantity >= availableStock}
+                    >
                         <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -77,7 +115,8 @@ export default function CartPage() {
                     <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                   </Button>
                 </div>
-              ))}
+                );
+              })}
             </CardContent>
           </Card>
         </div>

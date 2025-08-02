@@ -19,9 +19,27 @@ function AddToCartSection({ product }: { product: Product }) {
   const variant = hasVariants ? product.variants[variantIdx] : undefined;
   const price = variant ? variant.price : product.price;
   const isLoading = isAddingToCart(product.id);
+  
+  // Calculate available stock
+  const getAvailableStock = (): number => {
+    if (hasVariants && variant) {
+      return variant.stock;
+    }
+    if (product.stock !== undefined) {
+      return product.stock;
+    }
+    return 0;
+  };
+  
+  const availableStock = getAvailableStock();
+  const isOutOfStock = availableStock <= 0;
+  const isLowStock = availableStock > 0 && availableStock <= 5;
+  const maxQuantity = Math.min(10, availableStock); // Cap at 10 or available stock
 
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    if (!isOutOfStock && quantity <= availableStock) {
+      addToCart(product, quantity);
+    }
   };
 
   return (
@@ -29,14 +47,18 @@ function AddToCartSection({ product }: { product: Product }) {
       {hasVariants && (
         <div>
           <label className="text-sm font-medium mb-2 block">Variant</label>
-          <Select value={String(variantIdx)} onValueChange={(value) => setVariantIdx(parseInt(value))}>
+          <Select value={String(variantIdx)} onValueChange={(value) => {
+            setVariantIdx(parseInt(value));
+            setQuantity(1); // Reset quantity when variant changes
+          }}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select variant" />
             </SelectTrigger>
             <SelectContent>
               {product.variants?.map((variant, idx) => (
-                <SelectItem key={idx} value={String(idx)}>
-                  {variant.name} - ₹{variant.price}
+                <SelectItem key={idx} value={String(idx)} disabled={variant.stock <= 0}>
+                  {variant.name} - ₹{variant.price} 
+                  {variant.stock <= 0 ? ' (Out of Stock)' : variant.stock <= 5 ? ` (${variant.stock} left)` : ''}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -44,49 +66,77 @@ function AddToCartSection({ product }: { product: Product }) {
         </div>
       )}
 
-      <div>
-        <label className="text-sm font-medium mb-2 block">Quantity</label>
-        <div className="flex items-center border rounded-md w-32">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            disabled={quantity <= 1 || isLoading}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="flex-1 text-center">{quantity}</span>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setQuantity(quantity + 1)}
-            disabled={isLoading}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+      {/* Stock Status */}
+      <div className="space-y-2">
+        {isOutOfStock ? (
+          <div className="text-red-600 font-medium">Out of Stock</div>
+        ) : isLowStock ? (
+          <div className="text-orange-600 font-medium">Only {availableStock} left in stock</div>
+        ) : (
+          <div className="text-green-600 font-medium">{availableStock} in stock</div>
+        )}
       </div>
 
+      {!isOutOfStock && (
+        <div>
+          <label className="text-sm font-medium mb-2 block">Quantity</label>
+          <div className="flex items-center border rounded-md w-32">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={quantity <= 1 || isLoading}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <span className="flex-1 text-center">{quantity}</span>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+              disabled={isLoading || quantity >= maxQuantity}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Max quantity: {maxQuantity}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-bold">₹{price}</span>
+        <span className={`text-3xl font-bold ${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}`}>
+          ₹{price}
+        </span>
         {/* Removed compareAtPrice check since it's not in the Variant type */}
       </div>
 
-      <Button 
-        onClick={handleAddToCart} 
-        size="lg" 
-        disabled={isLoading}
-        className="w-full bg-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Adding to Cart...
-          </>
-        ) : (
-          'Add to Cart'
-        )}
-      </Button>
+      {isOutOfStock ? (
+        <Button 
+          disabled 
+          size="lg" 
+          className="w-full bg-gray-300 text-gray-500 cursor-not-allowed"
+        >
+          Out of Stock
+        </Button>
+      ) : (
+        <Button 
+          onClick={handleAddToCart} 
+          size="lg" 
+          disabled={isLoading || quantity > availableStock}
+          className="w-full bg-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Adding to Cart...
+            </>
+          ) : (
+            'Add to Cart'
+          )}
+        </Button>
+      )}
     </div>
   );
 }

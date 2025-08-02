@@ -159,7 +159,7 @@ function PaymentFailureContent() {
           </p>
           <div className="space-y-1 text-sm text-gray-600">
             <p>• Email: support@andramrut.in</p>
-            <p>• Phone: +91 XXX XXX XXXX</p>
+            <p>• Phone: +91 6300 427 273</p>
             <p>• Available: Mon-Fri, 9 AM - 6 PM IST</p>
           </div>
         </div>

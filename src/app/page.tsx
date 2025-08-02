@@ -53,50 +53,53 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="featured-products" className="py-16 bg-card">
+      <section id="featured-products" className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="font-headline text-4xl text-center mb-10">Featured Products</h2>
+          <div className="text-center mb-16">
+            <h2 className="font-headline text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Featured Products
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Handpicked favorites that capture the essence of authentic Indian flavors
+            </p>
+          </div>
           {loading ? (
-            <div className="text-center">Loading products...</div>
+            <div className="flex justify-center items-center py-16">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading delicious products...</p>
+              </div>
+            </div>
           ) : error ? (
-            <div className="text-center text-destructive">{error}</div>
+            <div className="text-center text-destructive bg-red-50 rounded-lg p-8 max-w-md mx-auto">
+              <p className="text-lg mb-4">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="text-primary hover:underline"
+              >
+                Try again
+              </button>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
-        </div>
-      </section>
-
-      <section id="recipe-ai" className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="text-center md:text-left">
-              <h2 className="font-headline text-4xl mb-4">Unlock Culinary Creativity</h2>
-              <p className="text-muted-foreground mb-6">
-                Have a few ingredients but not sure what to make? Our AI-powered recipe tool suggests delicious Indian dishes you can create with our products and what you already have at home.
-              </p>
-              <Button asChild variant="secondary">
-                <Link href="/recipes">Discover Recipes</Link>
+          
+          {/* View All Button */}
+          {!loading && !error && featuredProducts.length > 0 && (
+            <div className="text-center mt-12">
+              <Button asChild size="lg" variant="outline" className="font-medium">
+                <Link href="/products">View All Products</Link>
               </Button>
             </div>
-            <div>
-              <Image
-                src="https://placehold.co/600x400.png"
-                alt="A collection of spices and herbs"
-                data-ai-hint="spices herbs"
-                width={600}
-                height={400}
-                className="rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
-      <section id="why-us" className="py-16 bg-card">
+      <section id="why-us" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <h2 className="font-headline text-4xl text-center mb-10">Why Choose AndrAmrut Naturals?</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
