@@ -45,12 +45,12 @@ function LoginForm() {
             </div>
           )}
           
-          {/* <GoogleSignInButton
+          <GoogleSignInButton
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
             buttonText="Continue with Google"
             className="mb-4"
-          /> */}
+          />
           
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
