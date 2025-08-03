@@ -137,9 +137,23 @@ export function useCart() {
     }
   }, [checkAuth, updateLocalState, handleAuthError, toast]);
 
-  const addToCart = async (product: Product, quantity: number) => {
+  const addToCart = async (product: Product, quantity: number, variantId?: number) => {
+    // For products with variants, require variant selection
+    if (product.variants && product.variants.length > 0 && !variantId) {
+      toast({
+        title: "Select Variant",
+        description: "Please select a variant for this product.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Check stock before adding
     const getTotalStock = (): number => {
+      if (variantId && product.variants) {
+        const variant = product.variants.find(v => v.id === variantId);
+        return variant ? variant.stock : 0;
+      }
       if (product.stock !== undefined) {
         return product.stock;
       }
@@ -161,15 +175,24 @@ export function useCart() {
       return;
     }
     
-    // Check current quantity in cart
-    const currentItem = items.find(item => item.product.id === product.id);
+    // Check current quantity in cart for this specific product+variant combination
+    const currentItem = items.find(item => {
+      if (variantId) {
+        return item.product.id === product.id && item.variant?.id === variantId;
+      }
+      return item.product.id === product.id && !item.variant;
+    });
     const currentQuantity = currentItem ? currentItem.quantity : 0;
     
     // Check if adding this quantity would exceed stock
     if (currentQuantity + quantity > totalStock) {
+      const variantName = variantId && product.variants ? 
+        product.variants.find(v => v.id === variantId)?.name : '';
+      const itemName = variantName ? `${product.name} (${variantName})` : product.name;
+      
       toast({
         title: "Insufficient Stock",
-        description: `Only ${totalStock} items available. You already have ${currentQuantity} in your cart.`,
+        description: `Only ${totalStock} items available for ${itemName}. You already have ${currentQuantity} in your cart.`,
         variant: "destructive",
       });
       return;
@@ -179,11 +202,16 @@ export function useCart() {
     try {
       if (checkAuth()) {
         // User is authenticated, add to server
-        await apiAddToCart(product.id, quantity);
+        await apiAddToCart(product.id, quantity, variantId);
         await initializeCart();
+        
+        const variantName = variantId && product.variants ? 
+          product.variants.find(v => v.id === variantId)?.name : '';
+        const itemName = variantName ? `${product.name} (${variantName})` : product.name;
+        
         toast({
           title: "Success!",
-          description: `${product.name} added to cart.`,
+          description: `${itemName} added to cart.`,
         });
       } else {
         // User is not authenticated, add to local storage
@@ -191,11 +219,26 @@ export function useCart() {
         await new Promise(resolve => setTimeout(resolve, 500));
         
         const guestItems = getGuestCart();
-        const existingItemIndex = guestItems.findIndex(item => item.product.id === product.id);
+        
+        // Find existing item with same product and variant
+        const existingItemIndex = guestItems.findIndex(item => {
+          if (variantId) {
+            return item.product.id === product.id && item.variant?.id === variantId;
+          }
+          return item.product.id === product.id && !item.variant;
+        });
         
         // Calculate the correct price
-        const productPrice = product.price || (product.variants && product.variants.length > 0 ? product.variants[0].price : 0);
-        const finalPrice = typeof productPrice === 'number' ? productPrice : parseFloat(productPrice) || 0;
+        let finalPrice: number;
+        if (variantId && product.variants) {
+          const variant = product.variants.find(v => v.id === variantId);
+          finalPrice = variant ? variant.price : (product.price || 0);
+        } else {
+          finalPrice = product.price || (product.variants && product.variants.length > 0 ? product.variants[0].price : 0);
+        }
+        
+        const variantData = variantId && product.variants ? 
+          product.variants.find(v => v.id === variantId) : undefined;
         
         if (existingItemIndex >= 0) {
           guestItems[existingItemIndex].quantity += quantity;
@@ -203,16 +246,22 @@ export function useCart() {
           guestItems.push({
             id: Date.now(), // Temporary ID for guest cart
             product,
+            variant: variantData,
             quantity,
             price: finalPrice,
+            available_stock: getTotalStock(),
           });
         }
         
         setGuestCart(guestItems);
         updateLocalState(guestItems);
+        
+        const variantName = variantData?.name;
+        const itemName = variantName ? `${product.name} (${variantName})` : product.name;
+        
         toast({
           title: "Added to Cart",
-          description: `${product.name} added to cart. Log in to save your cart.`,
+          description: `${itemName} added to cart. Log in to save your cart.`,
         });
       }
     } catch (error) {

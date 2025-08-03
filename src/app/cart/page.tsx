@@ -48,15 +48,15 @@ export default function CartPage() {
           <Card>
             <CardContent className="p-0">
               {items.map((item) => {
-                // Calculate available stock for this item
+                // Calculate available stock for this specific item (considering variant)
                 const getAvailableStock = (): number => {
+                  if (item.variant) {
+                    return item.variant.stock;
+                  }
                   if (item.product.stock !== undefined) {
                     return item.product.stock;
                   }
-                  if (item.product.variants && item.product.variants.length > 0) {
-                    return item.product.variants.reduce((total, variant) => total + variant.stock, 0);
-                  }
-                  return 0;
+                  return item.available_stock || 0;
                 };
                 
                 const availableStock = getAvailableStock();
@@ -75,7 +75,14 @@ export default function CartPage() {
                   />
                   <div className="flex-grow">
                     <Link href={`/products/${item.product.slug}`}>
-                      <h2 className="font-headline text-lg hover:text-primary">{item.product.name}</h2>
+                      <h2 className="font-headline text-lg hover:text-primary">
+                        {item.product.name}
+                        {item.variant && (
+                          <span className="text-sm text-muted-foreground ml-2">
+                            ({item.variant.name})
+                          </span>
+                        )}
+                      </h2>
                     </Link>
                     <p className="text-sm text-muted-foreground">₹{formatPrice(item.price)}</p>
                     {/* Stock status */}

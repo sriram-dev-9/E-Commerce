@@ -38,7 +38,11 @@ function AddToCartSection({ product }: { product: Product }) {
 
   const handleAddToCart = () => {
     if (!isOutOfStock && quantity <= availableStock) {
-      addToCart(product, quantity);
+      if (hasVariants && variant) {
+        addToCart(product, quantity, variant.id);
+      } else {
+        addToCart(product, quantity);
+      }
     }
   };
 

@@ -23,14 +23,20 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, isAddingToCart } = useCartContext();
   const isLoading = isAddingToCart(product.id);
   
-  const displayPrice = product.price || (product.variants && product.variants.length > 0 ? product.variants[0].price : 0);
+  // Check if product has variants
+  const hasVariants = product.variants && product.variants.length > 0;
+  
+  // For multi-variant products, don't show a base price
+  const displayPrice = hasVariants 
+    ? `₹${product.variants[0].price} - ₹${Math.max(...product.variants.map(v => v.price))}`
+    : `₹${product.price || 0}`;
   
   // Calculate total stock from variants or use product stock
   const getTotalStock = (): number => {
     if (product.stock !== undefined) {
       return product.stock;
     }
-    if (product.variants && product.variants.length > 0) {
+    if (hasVariants) {
       return product.variants.reduce((total, variant) => total + variant.stock, 0);
     }
     return 0;
@@ -39,6 +45,17 @@ export function ProductCard({ product }: ProductCardProps) {
   const totalStock = getTotalStock();
   const isOutOfStock = totalStock <= 0;
   const isLowStock = totalStock > 0 && totalStock <= 5;
+  
+  // For multi-variant products, we should redirect to product page instead of adding directly to cart
+  const handleAddToCart = () => {
+    if (hasVariants) {
+      // Redirect to product page for variant selection
+      window.location.href = `/products/${product.slug}`;
+    } else {
+      // Single variant product, add directly to cart
+      addToCart(product, 1);
+    }
+  };
   
   return (
     <Card className="group relative overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 bg-white rounded-xl">
@@ -67,11 +84,13 @@ export function ProductCard({ product }: ProductCardProps) {
             size="sm"
             variant="secondary"
             className="h-8 w-8 p-0 rounded-full bg-white/90 hover:bg-white shadow-md"
-            onClick={() => addToCart(product, 1)}
+            onClick={handleAddToCart}
             disabled={isLoading || isOutOfStock}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : hasVariants ? (
+              <ShoppingCart className="h-4 w-4" />
             ) : (
               <Plus className="h-4 w-4" />
             )}
@@ -124,10 +143,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex items-center justify-between pt-1">
             <div className="flex items-baseline gap-2">
               <span className={`text-xl font-bold ${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}`}>
-                ₹{displayPrice}
+                {displayPrice}
               </span>
-              {displayPrice > 100 && (
-                <span className="text-sm text-gray-500 line-through">₹{Math.round(displayPrice * 1.2)}</span>
+              {!hasVariants && product.price && product.price > 100 && (
+                <span className="text-sm text-gray-500 line-through">₹{Math.round(product.price * 1.2)}</span>
               )}
             </div>
             {!isOutOfStock && totalStock <= 10 && (
@@ -147,7 +166,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </Button>
           ) : (
             <Button 
-              onClick={() => addToCart(product, 1)} 
+              onClick={handleAddToCart} 
               disabled={isLoading}
               className="w-full mt-4 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 rounded-lg transition-all duration-200 hover:shadow-md"
             >
@@ -155,6 +174,11 @@ export function ProductCard({ product }: ProductCardProps) {
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...
+                </>
+              ) : hasVariants ? (
+                <>
+                  <ShoppingCart className="mr-2 h-4 w-4" />
+                  Select Options
                 </>
               ) : (
                 <>

@@ -1,5 +1,6 @@
 // Types for products and reviews
 export type Variant = {
+  id: number;
   name: string;
   price: number;
   stock: number;

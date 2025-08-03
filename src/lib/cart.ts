@@ -1,12 +1,14 @@
 // src/lib/cart.ts
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
-import type { Product } from "./products";
+import type { Product, Variant } from "./products";
 
 export type CartItem = {
   id: number;
   product: Product;
+  variant?: Variant;
   quantity: number;
   price: number;
+  available_stock: number;
 };
 
 export type Cart = {
@@ -20,9 +22,18 @@ export function fetchCart(): Promise<Cart> {
   return apiGet<Cart>("/api/cart/");
 }
 
-// Add an item to the cart
-export function addToCart(productId: number, quantity: number): Promise<CartItem> {
-  return apiPost<CartItem>("/api/cart/add/", { product_id: productId, quantity });
+// Add an item to the cart with optional variant
+export function addToCart(productId: number, quantity: number, variantId?: number): Promise<CartItem> {
+  const payload: { product_id: number; quantity: number; variant_id?: number } = {
+    product_id: productId,
+    quantity
+  };
+  
+  if (variantId) {
+    payload.variant_id = variantId;
+  }
+  
+  return apiPost<CartItem>("/api/cart/add/", payload);
 }
 
 // Update item quantity
