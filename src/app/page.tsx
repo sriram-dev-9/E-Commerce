@@ -32,24 +32,41 @@ export default function Home() {
 
   let featuredProducts: Product[] = [];
   if (Array.isArray(products)) {
-    featuredProducts = products.slice(0, 3);
+    featuredProducts = products.slice(0, 9);
   } else {
     featuredProducts = [];
   }
 
   return (
     <div className="flex flex-col">
-      <section className="bg-background py-20 md:py-32">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl text-primary mb-4">
-            AndrAmrut Naturals
-          </h1>
-          <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-muted-foreground">
-            Every Taste Has A Story - Authentic Indian pickles, spices, and culinary treasures, curated with passion and delivered to your doorstep.
-          </p>
-          <Button asChild size="lg">
-            <Link href="/products">Shop All Products</Link>
-          </Button>
+      <section className="relative h-screen overflow-hidden">
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+        >
+          <source src="https://nuuremoffuunfflrepll.supabase.co/storage/v1/object/public/media/homepage/IMG_0226.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/40"></div>
+
+        {/* Content overlay */}
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="container mx-auto px-4 text-center text-white">
+            <h1 className="font-headline text-5xl md:text-7xl lg:text-8xl mb-4 drop-shadow-lg">
+              AndrAmrut Naturals
+            </h1>
+            <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8 drop-shadow-md">
+              Every Taste Has A Story - Authentic Indian pickles, spices, and culinary treasures, curated with passion and delivered to your doorstep.
+            </p>
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-white shadow-lg">
+              <Link href="/products">Shop All Products</Link>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -73,8 +90,8 @@ export default function Home() {
           ) : error ? (
             <div className="text-center text-destructive bg-red-50 rounded-lg p-8 max-w-md mx-auto">
               <p className="text-lg mb-4">{error}</p>
-              <button 
-                onClick={() => window.location.reload()} 
+              <button
+                onClick={() => window.location.reload()}
                 className="text-primary hover:underline"
               >
                 Try again
@@ -87,7 +104,7 @@ export default function Home() {
               ))}
             </div>
           )}
-          
+
           {/* View All Button */}
           {!loading && !error && featuredProducts.length > 0 && (
             <div className="text-center mt-12">
