@@ -161,6 +161,9 @@ function CheckoutForm() {
     }
 
     // Phone validation - accept both +91 format and 10-digit format
+    // TEMPORARY: Allow any 10 digits for phone number, remove strict validation
+    // To restore original logic, uncomment the block below
+    /*
     if (formData.phone) {
       const phoneValue = formData.phone.replace(/\s/g, ''); // Remove any spaces
       const phoneRegex10 = /^[6-9]\d{9}$/; // 10 digit starting with 6-9
@@ -168,6 +171,15 @@ function CheckoutForm() {
       
       if (!phoneRegex10.test(phoneValue) && !phoneRegex91.test(phoneValue)) {
         newFieldErrors.phone = 'Please enter a valid phone number (10 digits starting with 6-9)';
+        isValid = false;
+      }
+    }
+    */
+    if (formData.phone) {
+      const phoneValue = formData.phone.replace(/\s/g, '');
+      const phoneRegexAny10 = /^\d{10}$/;
+      if (!phoneRegexAny10.test(phoneValue)) {
+        newFieldErrors.phone = 'Please enter a 10 digit phone number';
         isValid = false;
       }
     }
