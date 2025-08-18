@@ -15,40 +15,28 @@ function AddToCartSection({ product }: { product: Product }) {
   const [variantIdx, setVariantIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
-  const hasVariants = product.variants && product.variants.length > 0;
-  const variant = hasVariants ? product.variants[variantIdx] : undefined;
-  const price = variant ? variant.price : product.price;
+  // In variants-only system, all products have variants
+  const hasMultipleVariants = product.variants && product.variants.length > 1;
+  const variant = product.variants ? product.variants[variantIdx] : undefined;
+  const price = variant ? variant.price : product.effective_price;
   const isLoading = isAddingToCart(product.id);
   
-  // Calculate available stock
-  const getAvailableStock = (): number => {
-    if (hasVariants && variant) {
-      return variant.stock;
-    }
-    if (product.stock !== undefined) {
-      return product.stock;
-    }
-    return 0;
-  };
-  
-  const availableStock = getAvailableStock();
+  // Calculate available stock (variants-only system)
+  const availableStock = variant ? variant.stock : 0;
   const isOutOfStock = availableStock <= 0;
   const isLowStock = availableStock > 0 && availableStock <= 5;
   const maxQuantity = Math.min(10, availableStock); // Cap at 10 or available stock
 
   const handleAddToCart = () => {
-    if (!isOutOfStock && quantity <= availableStock) {
-      if (hasVariants && variant) {
-        addToCart(product, quantity, variant.id);
-      } else {
-        addToCart(product, quantity);
-      }
+    if (!isOutOfStock && quantity <= availableStock && variant) {
+      // In variants-only system, always pass variant
+      addToCart(product, quantity, variant);
     }
   };
 
   return (
     <div className="space-y-6">
-      {hasVariants && (
+      {hasMultipleVariants && (
         <div>
           <label className="text-sm font-medium mb-2 block">Variant</label>
           <Select value={String(variantIdx)} onValueChange={(value) => {

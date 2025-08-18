@@ -28,11 +28,14 @@ export type Product = {
   dataAiHint?: string;
   category: Category | number; // may be nested or just id
   subcategory: string;
-  price?: number;
-  stock?: number;
-  rating?: number; // Added rating property
+  effective_price: number; // Always from variants
+  price_range: string; // Display price range
+  total_stock: number; // Total across all variants
+  rating?: number;
   reviews?: Review[];
-  variants: Variant[];
+  variants: Variant[]; // Always has at least one variant
+  has_variants: boolean;
+  is_in_stock: boolean;
 };
 
 import { apiGet } from "@/lib/api";

@@ -137,30 +137,27 @@ export function useCart() {
     }
   }, [checkAuth, updateLocalState, handleAuthError, toast]);
 
-  const addToCart = async (product: Product, quantity: number, variantId?: number) => {
-    // For products with variants, require variant selection
-    if (product.variants && product.variants.length > 0 && !variantId) {
+  const addToCart = async (product: Product, quantity: number, variant?: any) => {
+    // In variants-only system, variant is always required
+    if (!variant) {
       toast({
-        title: "Select Variant",
-        description: "Please select a variant for this product.",
+        title: "Product Configuration Error",
+        description: "This product doesn't have proper variants configured. Please contact support.",
         variant: "destructive",
       });
       return;
     }
     
-    // Check stock before adding
+    const variantId = variant.id;
+    
+    // Check stock before adding (variants-only system)
     const getTotalStock = (): number => {
       if (variantId && product.variants) {
         const variant = product.variants.find(v => v.id === variantId);
         return variant ? variant.stock : 0;
       }
-      if (product.stock !== undefined) {
-        return product.stock;
-      }
-      if (product.variants && product.variants.length > 0) {
-        return product.variants.reduce((total, variant) => total + variant.stock, 0);
-      }
-      return 0;
+      // In variants-only system, use total_stock from backend
+      return product.total_stock || 0;
     };
     
     const totalStock = getTotalStock();
@@ -228,13 +225,14 @@ export function useCart() {
           return item.product.id === product.id && !item.variant;
         });
         
-        // Calculate the correct price
+        // Calculate the correct price (variants-only system)
         let finalPrice: number;
         if (variantId && product.variants) {
           const variant = product.variants.find(v => v.id === variantId);
-          finalPrice = variant ? variant.price : (product.price || 0);
+          finalPrice = variant ? variant.price : 0;
         } else {
-          finalPrice = product.price || (product.variants && product.variants.length > 0 ? product.variants[0].price : 0);
+          // Fallback to first variant price
+          finalPrice = product.variants && product.variants.length > 0 ? product.variants[0].price : 0;
         }
         
         const variantData = variantId && product.variants ? 
@@ -290,13 +288,8 @@ export function useCart() {
     // Check stock if increasing quantity
     if (quantity > 0) {
       const getTotalStock = (): number => {
-        if (item.product.stock !== undefined) {
-          return item.product.stock;
-        }
-        if (item.product.variants && item.product.variants.length > 0) {
-          return item.product.variants.reduce((total, variant) => total + variant.stock, 0);
-        }
-        return 0;
+        // In variants-only system, use the available_stock from cart item or total_stock from product
+        return item.available_stock || item.product.total_stock || 0;
       };
       
       const totalStock = getTotalStock();

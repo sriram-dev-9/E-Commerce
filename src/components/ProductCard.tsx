@@ -23,37 +23,26 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, isAddingToCart } = useCartContext();
   const isLoading = isAddingToCart(product.id);
   
-  // Check if product has variants
-  const hasVariants = product.variants && product.variants.length > 0;
+  // In variants-only system, all products have variants
+  const hasMultipleVariants = product.variants && product.variants.length > 1;
   
-  // For multi-variant products, don't show a base price
-  const displayPrice = hasVariants 
-    ? `₹${product.variants[0].price} - ₹${Math.max(...product.variants.map(v => v.price))}`
-    : `₹${product.price || 0}`;
+  // Use the price_range from backend or calculate from variants
+  const displayPrice = product.price_range || `₹${product.effective_price}`;
   
-  // Calculate total stock from variants or use product stock
-  const getTotalStock = (): number => {
-    if (product.stock !== undefined) {
-      return product.stock;
-    }
-    if (hasVariants) {
-      return product.variants.reduce((total, variant) => total + variant.stock, 0);
-    }
-    return 0;
-  };
-  
-  const totalStock = getTotalStock();
+  // Use total_stock from backend
+  const totalStock = product.total_stock || 0;
   const isOutOfStock = totalStock <= 0;
   const isLowStock = totalStock > 0 && totalStock <= 5;
   
-  // For multi-variant products, we should redirect to product page instead of adding directly to cart
+  // For multi-variant products, redirect to product page; for single variant, add directly
   const handleAddToCart = () => {
-    if (hasVariants) {
+    if (hasMultipleVariants) {
       // Redirect to product page for variant selection
       window.location.href = `/products/${product.slug}`;
     } else {
-      // Single variant product, add directly to cart
-      addToCart(product, 1);
+      // Single variant product, add directly to cart with the variant
+      const variant = product.variants[0];
+      addToCart(product, 1, variant);
     }
   };
   
@@ -89,7 +78,7 @@ export function ProductCard({ product }: ProductCardProps) {
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
-            ) : hasVariants ? (
+            ) : hasMultipleVariants ? (
               <ShoppingCart className="h-4 w-4" />
             ) : (
               <Plus className="h-4 w-4" />
@@ -145,8 +134,8 @@ export function ProductCard({ product }: ProductCardProps) {
               <span className={`text-xl font-bold ${isOutOfStock ? 'text-gray-400' : 'text-gray-900'}`}>
                 {displayPrice}
               </span>
-              {!hasVariants && product.price && product.price > 100 && (
-                <span className="text-sm text-gray-500 line-through">₹{Math.round(product.price * 1.2)}</span>
+              {!hasMultipleVariants && product.variants && product.variants.length === 1 && product.variants[0].price > 100 && (
+                <span className="text-sm text-gray-500 line-through">₹{Math.round(product.variants[0].price * 1.2)}</span>
               )}
             </div>
             {!isOutOfStock && totalStock <= 10 && (
@@ -175,7 +164,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...
                 </>
-              ) : hasVariants ? (
+              ) : hasMultipleVariants ? (
                 <>
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Select Options

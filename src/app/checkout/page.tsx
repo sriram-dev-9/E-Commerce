@@ -547,7 +547,7 @@ function CheckoutForm() {
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       </div>
                     </div>
-                    <span className="font-medium">₹{(Number(item.product.price) * item.quantity).toFixed(2)}</span>
+                    <span className="font-medium">₹{(Number(item.price) * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
 

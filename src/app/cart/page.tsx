@@ -53,9 +53,8 @@ export default function CartPage() {
                   if (item.variant) {
                     return item.variant.stock;
                   }
-                  if (item.product.stock !== undefined) {
-                    return item.product.stock;
-                  }
+                  // Use available_stock from cart item or total_stock from product
+                  return item.available_stock || item.product.total_stock || 0;
                   return item.available_stock || 0;
                 };
                 
