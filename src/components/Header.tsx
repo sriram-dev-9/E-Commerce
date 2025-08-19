@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingBasket, Menu, User, LogOut, Package } from "lucide-react";
+import { ShoppingCart, Menu, User, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartContext } from "@/hooks/use-cart";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -85,7 +85,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Button asChild variant="ghost" size="icon" className="relative">
             <Link href="/cart">
-              <ShoppingBasket className="h-5 w-5" />
+              <ShoppingCart className="h-5 w-5" />
               {totalItems > 0 && (
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground">
                   {totalItems}

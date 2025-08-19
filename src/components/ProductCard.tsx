@@ -165,10 +165,7 @@ export function ProductCard({ product }: ProductCardProps) {
                   Adding...
                 </>
               ) : hasMultipleVariants ? (
-                <>
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Select Options
-                </>
+                'Select Options'
               ) : (
                 <>
                   <ShoppingCart className="mr-2 h-4 w-4" />
