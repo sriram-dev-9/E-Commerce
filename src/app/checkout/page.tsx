@@ -162,8 +162,6 @@ function CheckoutForm() {
 
     // Phone validation - accept both +91 format and 10-digit format
     // TEMPORARY: Allow any 10 digits for phone number, remove strict validation
-    // To restore original logic, uncomment the block below
-    /*
     if (formData.phone) {
       const phoneValue = formData.phone.replace(/\s/g, ''); // Remove any spaces
       const phoneRegex10 = /^[6-9]\d{9}$/; // 10 digit starting with 6-9
@@ -171,15 +169,6 @@ function CheckoutForm() {
       
       if (!phoneRegex10.test(phoneValue) && !phoneRegex91.test(phoneValue)) {
         newFieldErrors.phone = 'Please enter a valid phone number (10 digits starting with 6-9)';
-        isValid = false;
-      }
-    }
-    */
-    if (formData.phone) {
-      const phoneValue = formData.phone.replace(/\s/g, '');
-      const phoneRegexAny10 = /^\d{10}$/;
-      if (!phoneRegexAny10.test(phoneValue)) {
-        newFieldErrors.phone = 'Please enter a 10 digit phone number';
         isValid = false;
       }
     }
@@ -539,15 +528,20 @@ function CheckoutForm() {
               </CardHeader>
               <CardContent className="space-y-4">
                 {!retryOrderId && cartItems.map((item) => (
-                  <div key={item.product.id} className="flex justify-between items-center">
+                  <div key={item.id} className="flex justify-between items-center">
                     <div className="flex items-center gap-4">
                       <Image src={item.product.image} alt={item.product.name} width={50} height={50} className="rounded-md" />
                       <div className="flex-1">
-                        <h4 className="font-medium">{item.product.name}</h4>
+                        <h4 className="font-medium">
+                          {item.product.name}
+                          {item.variant && (
+                            <span className="text-sm text-gray-600 ml-2">({item.variant.name})</span>
+                          )}
+                        </h4>
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       </div>
                     </div>
-                    <span className="font-medium">₹{(Number(item.price) * item.quantity).toFixed(2)}</span>
+                    <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
 
