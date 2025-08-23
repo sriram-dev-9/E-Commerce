@@ -283,12 +283,18 @@ export function useCart() {
   const updateQuantity = async (itemId: number, quantity: number) => {
     // Find the item to get product details for stock checking
     const item = items.find(item => item.id === itemId);
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     
     // Check stock if increasing quantity
     if (quantity > 0) {
       const getTotalStock = (): number => {
-        // In variants-only system, use the available_stock from cart item or total_stock from product
+        // In variants-only system, prioritize variant stock if available
+        if (item.variant && item.variant.stock !== undefined) {
+          return item.variant.stock;
+        }
+        // Use available_stock from cart item or total_stock from product
         return item.available_stock || item.product.total_stock || 0;
       };
       
@@ -313,6 +319,7 @@ export function useCart() {
         } else {
           await apiUpdateCartItem(itemId, quantity);
         }
+        // Re-fetch cart to ensure consistency
         await initializeCart();
       } else {
         // User is not authenticated, update local storage
