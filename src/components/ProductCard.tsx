@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +22,7 @@ const getCategoryName = (category: Product['category']): string => {
 
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart, isAddingToCart } = useCartContext();
+  const router = useRouter();
   const isLoading = isAddingToCart(product.id);
   
   // In variants-only system, all products have variants
@@ -34,11 +36,11 @@ export function ProductCard({ product }: ProductCardProps) {
   const isOutOfStock = totalStock <= 0;
   const isLowStock = totalStock > 0 && totalStock <= 5;
   
-  // For multi-variant products, redirect to product page; for single variant, add directly
+  // For multi-variant products, navigate to product page; for single variant, add directly
   const handleAddToCart = () => {
     if (hasMultipleVariants) {
-      // Redirect to product page for variant selection
-      window.location.href = `/products/${product.slug}`;
+      // Navigate to product page for variant selection using Next.js router
+      router.push(`/products/${product.slug}`);
     } else {
       // Single variant product, add directly to cart with the variant
       const variant = product.variants[0];
